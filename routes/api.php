@@ -1,26 +1,34 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TestController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 
-Route::group(['middleware' => ['auth:api']], function() {
+
+// Authenticated routes
+Route::group(['middleware' => ['auth:api']], function () {
     Route::middleware(['role:owner'])->group(function () {
-        // Owner role
+        // Owner authenticated
     });
 
     Route::middleware(['role:admin'])->group(function () {
-        // Admin role
+        // Admin authenticated
     });
-    
+
     Route::middleware(['role:client'])->group(function () {
-        // Client role
+        // Client authenticated
         Route::get('/test', [TestController::class, 'index']);
     });
 });
 
-Route::post('/login', [AuthController::class, 'login']);
+// Unauthenticated routes
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/register', [AuthController::class, 'register']);
+});
 
-// Route::post('/users/{userId}/assign-role', [UserController::class, 'assignRoleToUser']);
+/*
+    use App\Http\Controllers\UserController;
+    Route::post('/users/{userId}/assign-role', [UserController::class, 'assignRoleToUser']);
+*/

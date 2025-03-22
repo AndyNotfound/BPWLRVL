@@ -10,7 +10,7 @@ use App\Models\User;
 class TestController extends Controller
 {
     public function index()
-    {   
+    {
         $users = User::all();
         return response()->json(['message' => 'List of resources', 'data' => $users]);
     }
