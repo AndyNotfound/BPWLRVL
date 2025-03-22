@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 
 
 // Authenticated routes
-Route::group(['middleware' => ['auth:api']], function () {
+Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
     Route::middleware(['role:owner'])->group(function () {
         // Owner authenticated
     });
@@ -26,6 +26,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
 });
 
 /*

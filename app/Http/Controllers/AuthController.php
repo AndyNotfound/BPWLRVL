@@ -7,7 +7,6 @@ use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
-use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
@@ -27,15 +26,24 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
         ]);
 
-        $role = Role::findByName('client');
-        $user->assignRole($role);
+        $user->assignRole('client');
 
         $token = JWTAuth::fromUser($user);
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ], 201);
+        $roles = $user->getRoleNames();
+
+        return response()->json(
+            [
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $roles,
+                ],
+            ], 
+            201
+        );
     }
 
     public function login(Request $request)
@@ -49,18 +57,83 @@ class AuthController extends Controller
 
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json(
+                    [
+                        'error' => 'Unauthorized'
+                    ], 
+                    401
+                );
             }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not create token'], 500);
-        }
 
-        return response()->json(compact('token'));
+            $user = JWTAuth::user();
+
+            $roles = $user->getRoleNames();
+
+            return response()->json(
+                [
+                    'token' => $token,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roles' => $roles
+                    ],
+                ]
+            );
+        } catch (JWTException $e) {
+            return response()->json(
+                [
+                    'error' => 'Could not create token'
+                ], 
+                500
+            );
+        }
     }
 
     public function logout(Request $request)
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(
+            [
+                'message' => 'Successfully logged out'
+            ]
+        );
+    }
+
+    public function refresh(Request $request)
+    {
+        try {
+            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            $user = JWTAuth::user();
+
+            if (!$user) {
+                return response()->json(
+                    [
+                        'error' => 'User not found'
+                    ], 
+                    404
+                );
+            }
+
+            $roles = $user->getRoleNames();
+            return response()->json(
+                [
+                    'token' => $newToken,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roles' => $roles
+                    ]
+                ]
+            );
+        } catch (JWTException $e) {
+            return response()->json(
+                [
+                    'error' => 'Could not refresh token'
+                ], 
+                500
+            );
+        }
     }
 }
