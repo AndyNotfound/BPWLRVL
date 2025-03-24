@@ -7,6 +7,7 @@ use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -16,24 +17,32 @@ class AuthController extends Controller
     {
         $this->validate($request, [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['error' => 'Email is already registered.'], 409);
+        }
 
-        $user->assignRole('client');
+        DB::beginTransaction();
 
-        $token = JWTAuth::fromUser($user);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+            ]);
 
-        $roles = $user->getRoleNames();
+            $user->assignRole('client');
 
-        return response()->json(
-            [
+            $token = JWTAuth::fromUser($user);
+
+            $roles = $user->getRoleNames();
+
+            DB::commit();
+
+            return response()->json([
                 'token' => $token,
                 'user' => [
                     'id' => $user->id,
@@ -41,9 +50,12 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'roles' => $roles,
                 ],
-            ], 
-            201
-        );
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json(['error' => 'Registration failed.'], 500);
+        }
     }
 
     public function login(Request $request)
@@ -60,7 +72,7 @@ class AuthController extends Controller
                 return response()->json(
                     [
                         'error' => 'Unauthorized'
-                    ], 
+                    ],
                     401
                 );
             }
@@ -84,7 +96,7 @@ class AuthController extends Controller
             return response()->json(
                 [
                     'error' => 'Could not create token'
-                ], 
+                ],
                 500
             );
         }
@@ -110,7 +122,7 @@ class AuthController extends Controller
                 return response()->json(
                     [
                         'error' => 'User not found'
-                    ], 
+                    ],
                     404
                 );
             }
@@ -131,7 +143,7 @@ class AuthController extends Controller
             return response()->json(
                 [
                     'error' => 'Could not refresh token'
-                ], 
+                ],
                 500
             );
         }

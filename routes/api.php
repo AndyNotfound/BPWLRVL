@@ -3,10 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Middleware\CorsMiddleware;
 
 
 // Authenticated routes
 Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
     Route::middleware(['role:owner'])->group(function () {
         // Owner authenticated
     });
@@ -22,14 +26,11 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
 });
 
 // Unauthenticated routes
-Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
-});
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
-/*
+/* 
+    Assign role to user
     use App\Http\Controllers\UserController;
     Route::post('/users/{userId}/assign-role', [UserController::class, 'assignRoleToUser']);
 */
