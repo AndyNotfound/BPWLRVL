@@ -3,8 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\AuthController;
-use App\Http\Middleware\CorsMiddleware;
-
 
 // Authenticated routes
 Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {

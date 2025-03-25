@@ -8,6 +8,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -16,90 +17,81 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users',
+            'phone_number' => 'nullable|string|max:20|unique:users',
+            'username' => 'required|string|max:255|unique:users',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.unique' => 'The email has already been taken.',
+            'phone_number.unique' => 'The phone number has already been registered.',
+            'username.unique' => 'The username has already been taken.',
+            'password.confirmed' => 'The password confirmation does not match.',
         ]);
-
-        if (User::where('email', $request->email)->exists()) {
-            return response()->json(['error' => 'Email is already registered.'], 409);
-        }
 
         DB::beginTransaction();
 
         try {
             $user = User::create([
-                'name' => $request->name,
                 'email' => $request->email,
-                'password' => bcrypt($request->password),
+                'phone_number' => $request->phone_number,
+                'username' => $request->username,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'password' => Hash::make($request->password),
             ]);
 
             $user->assignRole('client');
 
-            $token = JWTAuth::fromUser($user);
-
-            $roles = $user->getRoleNames();
-
             DB::commit();
 
-            return response()->json([
-                'token' => $token,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $roles,
-                ],
-            ], 201);
+            return response()->json(['message' => 'User registered successfully!', 'user' => $user], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return response()->json(['error' => 'Registration failed.'], 500);
+            return response()->json(['error' => 'Registration failed. Please try again.'], 500);
         }
     }
 
     public function login(Request $request)
     {
         $this->validate($request, [
-            'email' => 'required|email',
-            'password' => 'required',
+            'login' => 'required|string', 
+            'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $loginField = $request->input('login'); 
+        $password = $request->input('password');
 
-        try {
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(
-                    [
-                        'error' => 'Unauthorized'
-                    ],
-                    401
-                );
-            }
+        $user = User::where('email', $loginField)
+            ->orWhere('username', $loginField)
+            ->orWhere('phone_number', $loginField)
+            ->first();
 
-            $user = JWTAuth::user();
 
-            $roles = $user->getRoleNames();
-
-            return response()->json(
-                [
-                    'token' => $token,
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'roles' => $roles
-                    ],
-                ]
-            );
-        } catch (JWTException $e) {
-            return response()->json(
-                [
-                    'error' => 'Could not create token'
-                ],
-                500
-            );
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        if (!Hash::check($password, $user->password)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->user_id,
+                'email'=> $user->email,
+                'phone_number' => $user->phone_number,
+                'username' => $user->username,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'is_active' => $user->is_active,
+                'roles' => $user->getRoleNames(),
+            ],
+        ]);
     }
 
     public function logout(Request $request)
