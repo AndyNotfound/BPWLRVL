@@ -11,6 +11,8 @@ class PackagesSeeder extends Seeder
 {
     public function run(): void
     {
+        Packages::query()->delete();
+
         for ($i = 1; $i <= 20; $i++) {
             Packages::create([
                 'Oid' => Str::uuid(),
@@ -27,6 +29,11 @@ class PackagesSeeder extends Seeder
                 'ValidDateEnd' => now()->addDays($i + 10),
                 'Price' => rand(100, 999) * 1000,
                 'MaxCapacity' => rand(10, 100),
+                'isCustomItineraries' => (bool)random_int(0, 1),
+                'isFavorites' => (bool)random_int(0, 1),
+                'isSeasonal' => (bool)random_int(0, 1),
+                'isCustom' => (bool)random_int(0, 1),
+                'isMustSee' => (bool)random_int(0, 1),
             ]);
         }
     }

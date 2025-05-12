@@ -20,6 +20,13 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
     });
 
+    Route::prefix('/homepage')->group(function () {
+        Route::get('/favorites', [PackageController::class, 'favorites']);
+        Route::get('/seasonal', [PackageController::class, 'seasonal']);
+        Route::get('/custom', [PackageController::class, 'custom']);
+        Route::get('/mustsee', [PackageController::class, 'mustsee']);
+    });
+
     Route::prefix('/packages')->group(function () {
         Route::get('/list', [PackageController::class, 'list']);
         Route::get('{Oid}', [PackageController::class, 'show']);
@@ -30,10 +37,6 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         Route::post('/create', [CartController::class, 'create']);
         Route::post('/Update-Payment', [CartController::class, 'updatePayment']);
         Route::post('/Create-Payment/{Oid}', [CartController::class, 'createPayment']);
-    });
-    
-    Route::prefix('/combosource')->group(function () {
-        Route::get('/itineraries', [ComboController::class, 'itineraries']);
     });
 
     Route::prefix('/admin')->group(function () {
@@ -59,6 +62,10 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
+
+Route::prefix('/combosource')->group(function () {
+    Route::get('/itineraries', [ComboController::class, 'itineraries']);
+});
 
 /* 
     Assign role to user
