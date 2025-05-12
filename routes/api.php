@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\ComboController;
+use App\Http\Controllers\PackageController;
+use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
 
 // Authenticated routes
@@ -16,22 +20,45 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
     });
 
+    Route::prefix('/packages')->group(function () {
+        Route::get('/list', [PackageController::class, 'list']);
+        Route::get('{Oid}', [PackageController::class, 'show']);
+        Route::delete('{Oid}', [PackageController::class, 'delete']);
+    });
+
+    Route::prefix('/cart')->group(function () {
+        Route::post('/create', [CartController::class, 'create']);
+        Route::post('/Update-Payment', [CartController::class, 'updatePayment']);
+        Route::post('/Create-Payment/{Oid}', [CartController::class, 'createPayment']);
+    });
+    
+    Route::prefix('/combosource')->group(function () {
+        Route::get('/itineraries', [ComboController::class, 'itineraries']);
+    });
+
+    Route::prefix('/admin')->group(function () {
+        Route::prefix('/travelTransaction')->group(function () {
+            Route::get('/list', [TravelTransactionController::class, 'list']);
+            Route::get('{Oid}', [TravelTransactionController::class, 'show']);
+            Route::post('{Oid}', [TravelTransactionController::class, 'save']);
+        });
+    });
+
+
     Route::middleware(['role:owner'])->group(function () {
-        // Owner authenticated
     });
 
     Route::middleware(['role:admin'])->group(function () {
-        // Admin authenticated
     });
 
     Route::middleware(['role:client'])->group(function () {
-        // Client authenticated
     });
 });
 
 // Unauthenticated routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
 
 /* 
     Assign role to user

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -40,9 +41,8 @@ class AuthController extends Controller
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'password' => Hash::make($request->password),
+                'role' => 3
             ]);
-
-            $user->assignRole('client');
 
             DB::commit();
 
@@ -69,13 +69,9 @@ class AuthController extends Controller
             ->first();
 
 
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        if (!$user)  return response()->json(['error' => 'Unauthorized'], 401);
 
-        if (!Hash::check($password, $user->password)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        if (!Hash::check($password, $user->password)) return response()->json(['error' => 'Unauthorized'], 401);
 
         $token = JWTAuth::fromUser($user);
 
@@ -89,7 +85,8 @@ class AuthController extends Controller
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'is_active' => $user->is_active,
-                'roles' => $user->getRoleNames(),
+                'role' => $user->role,
+                'roles' => $user->roleObj
             ],
         ]);
     }
@@ -119,7 +116,6 @@ class AuthController extends Controller
                 );
             }
 
-            $roles = $user->getRoleNames();
             return response()->json(
                 [
                     'token' => $newToken,
@@ -127,7 +123,8 @@ class AuthController extends Controller
                         'id' => $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
-                        'roles' => $roles
+                        'role' => $user->role,
+                        'roles' => $user->roleObj
                     ]
                 ]
             );
