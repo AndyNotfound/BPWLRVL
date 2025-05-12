@@ -31,10 +31,6 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         Route::post('/Update-Payment', [CartController::class, 'updatePayment']);
         Route::post('/Create-Payment/{Oid}', [CartController::class, 'createPayment']);
     });
-    
-    Route::prefix('/combosource')->group(function () {
-        Route::get('/itineraries', [ComboController::class, 'itineraries']);
-    });
 
     Route::prefix('/admin')->group(function () {
         Route::prefix('/travelTransaction')->group(function () {
@@ -59,6 +55,10 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
+
+Route::prefix('/combosource')->group(function () {
+    Route::get('/itineraries', [ComboController::class, 'itineraries']);
+});
 
 /* 
     Assign role to user
