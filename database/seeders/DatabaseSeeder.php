@@ -16,19 +16,19 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::Create([
-            'name' => 'Admin',
+            'username' => 'Admin',
             'email' => 'admin@example.com',
             'password' => bcrypt('123')
         ]);
 
         User::Create([
-            'name' => 'Owner',
+            'username' => 'Owner',
             'email' => 'Owner@example.com',
             'password' => bcrypt('123')
         ]);
 
         User::Create([
-            'name' => 'Client',
+            'username' => 'Client',
             'email' => 'client@example.com',
             'password' => bcrypt('123')
         ]);
