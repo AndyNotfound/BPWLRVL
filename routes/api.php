@@ -20,6 +20,13 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
     });
 
+    Route::prefix('/homepage')->group(function () {
+        Route::get('/favorites', [PackageController::class, 'favorites']);
+        Route::get('/seasonal', [PackageController::class, 'seasonal']);
+        Route::get('/custom', [PackageController::class, 'custom']);
+        Route::get('/mustsee', [PackageController::class, 'mustsee']);
+    });
+
     Route::prefix('/packages')->group(function () {
         Route::get('/list', [PackageController::class, 'list']);
         Route::get('{Oid}', [PackageController::class, 'show']);
