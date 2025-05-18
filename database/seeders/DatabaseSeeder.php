@@ -16,21 +16,36 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::Create([
-            'username' => 'Admin',
             'email' => 'admin@example.com',
-            'password' => bcrypt('123')
+            'phone_number' => '1234567890',
+            'username' => 'Admin',
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 2
         ]);
 
         User::Create([
-            'username' => 'Owner',
             'email' => 'Owner@example.com',
-            'password' => bcrypt('123')
+            'phone_number' => '0987654321',
+            'username' => 'Owner',
+            'first_name' => 'Owner',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 1
         ]);
 
         User::Create([
-            'username' => 'Client',
             'email' => 'client@example.com',
-            'password' => bcrypt('123')
+            'phone_number' => '1234567891',
+            'username' => 'Client',
+            'first_name' => 'Client',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 3
         ]);
     }
 }
