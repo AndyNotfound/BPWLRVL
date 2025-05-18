@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,7 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'owner']);
+        Role::firstOrCreate(['name' => 'client']);
 
         User::Create([
             'email' => 'admin@example.com',
@@ -23,18 +25,18 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'User',
             'is_active' => true,
             'password' => bcrypt('123'),
-            'role' => 2
+            'role' => 1
         ]);
 
         User::Create([
-            'email' => 'Owner@example.com',
+            'email' => 'owner@example.com',
             'phone_number' => '0987654321',
             'username' => 'Owner',
             'first_name' => 'Owner',
             'last_name' => 'User',
             'is_active' => true,
             'password' => bcrypt('123'),
-            'role' => 1
+            'role' => 2,
         ]);
 
         User::Create([

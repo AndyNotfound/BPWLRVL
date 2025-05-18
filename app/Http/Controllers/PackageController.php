@@ -72,7 +72,7 @@ class PackageController extends Controller
     public function custom(Request $request) {
        try {
             $perPage = $request->input('per_page', 10);
-            $packages = Packages::where('isCustom', 1)->paginate($perPage);
+            $packages = Packages::where('isCustomItineraries', 1)->paginate($perPage);
 
             return response()->json([
                 'success' => true,
