@@ -35,6 +35,74 @@ class PackageController extends Controller
         }
     }
 
+    public function favorites(Request $request) {
+       try {
+            $perPage = $request->input('per_page', 10);
+            $packages = Packages::where('isFavorites', 1)->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $packages
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve packages.',
+            ], 500);
+        }
+    }
+
+    public function seasonal(Request $request) {
+       try {
+            $perPage = $request->input('per_page', 10);
+            $packages = Packages::where('isSeasonal', 1)->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $packages
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve packages.',
+            ], 500);
+        }
+    }
+
+    public function custom(Request $request) {
+       try {
+            $perPage = $request->input('per_page', 10);
+            $packages = Packages::where('isCustom', 1)->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $packages
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve packages.',
+            ], 500);
+        }
+    }
+
+    public function mustsee(Request $request) {
+       try {
+            $perPage = $request->input('per_page', 10);
+            $packages = Packages::where('isMustSee', 1)->paginate($perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $packages
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve packages.',
+            ], 500);
+        }
+    }
+
     public function show(Request $request, $Oid) {
         try {
             $packages = Packages::findOrFail($Oid);
