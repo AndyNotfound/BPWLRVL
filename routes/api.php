@@ -9,22 +9,18 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
 
-// Authenticated routes
+// Private routes
 Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
-    Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    // Authentication
+    Route::prefix('/auth')->group(function () {
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
 
     // User 
     Route::prefix('/user')->group(function () {
         Route::post('/update', [UserController::class, 'update']);
         Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
-    });
-
-    Route::prefix('/homepage')->group(function () {
-        Route::get('/favorites', [PackageController::class, 'favorites']);
-        Route::get('/seasonal', [PackageController::class, 'seasonal']);
-        Route::get('/custom', [PackageController::class, 'custom']);
-        Route::get('/mustsee', [PackageController::class, 'mustsee']);
     });
 
     Route::prefix('/packages')->group(function () {
@@ -47,20 +43,33 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
         });
     });
 
-
-    Route::middleware(['role:owner'])->group(function () {
-    });
-
-    Route::middleware(['role:admin'])->group(function () {
-    });
-
-    Route::middleware(['role:client'])->group(function () {
-    });
+    /*
+        Unused Role based middleware?
+        Route::middleware(['role:owner'])->group(function () {
+        });
+        Route::middleware(['role:admin'])->group(function () {
+        });
+        Route::middleware(['role:client'])->group(function () {
+        });
+    */
 });
 
-// Unauthenticated routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+// Public routes
+
+// Authentication
+Route::prefix('/auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+// Homepage
+Route::prefix('/homepage')->group(function () {
+    Route::get('/favorites', [PackageController::class, 'favorites']);
+    Route::get('/seasonal', [PackageController::class, 'seasonal']);
+    Route::get('/custom', [PackageController::class, 'custom']);
+    Route::get('/mustsee', [PackageController::class, 'mustsee']);
+});
+
 Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
 
 Route::prefix('/combosource')->group(function () {
