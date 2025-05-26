@@ -9,6 +9,11 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
 
+// Unauthenticated routes
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
+
 // Authenticated routes
 Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
@@ -30,6 +35,7 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
     Route::prefix('/packages')->group(function () {
         Route::get('/list', [PackageController::class, 'list']);
         Route::get('{Oid}', [PackageController::class, 'show']);
+        Route::get('{Oid?}', [PackageController::class, 'save']);
         Route::delete('{Oid}', [PackageController::class, 'delete']);
     });
 
@@ -57,11 +63,6 @@ Route::group(['middleware' => ['auth:api', 'refresh_token']], function () {
     Route::middleware(['role:client'])->group(function () {
     });
 });
-
-// Unauthenticated routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/Callback-Payment', [CartController::class, 'updatePayment']);
 
 Route::prefix('/combosource')->group(function () {
     Route::get('/itineraries', [ComboController::class, 'itineraries']);
