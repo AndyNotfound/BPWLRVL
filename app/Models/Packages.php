@@ -9,12 +9,14 @@ class Packages extends Model
 {
     use HasFactory;
 
+    public $incrementing = false;
+
     protected $table = 'packages';
 
     protected $primaryKey = 'Oid';
 
     protected $fillable = [
-        'Oid', 
+        'Oid',
         'CreateBy',
         'CreatedAt',
         'Name',
@@ -27,7 +29,7 @@ class Packages extends Model
         'ValidDateStart',
         'ValidDateEnd',
         'Price',
-        'MaxCapacity'  
+        'MaxCapacity'
     ];
     public $timestamps = false;
 

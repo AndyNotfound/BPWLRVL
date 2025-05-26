@@ -7,13 +7,21 @@ use App\Models\Packages;
 use App\Models\Itineraries;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class PackageController extends Controller
 {
     use ValidatesRequests;
+    private $crudController;
 
-    private function getFilteredPackages(Request $request, string $filterField) {
+    public function __construct()
+    {
+        $this->crudController = new globalCRUDController();
+    }
+
+    private function getFilteredPackages(Request $request, string $filterField)
+    {
         try {
             $perPage = $request->input('per_page', 10);
 
@@ -47,7 +55,8 @@ class PackageController extends Controller
     }
 
 
-    public function list(Request $request) {
+    public function list(Request $request)
+    {
         try {
             $perPage = $request->input('per_page', 10);
             $packages = Packages::paginate($perPage);
@@ -64,23 +73,28 @@ class PackageController extends Controller
         }
     }
 
-    public function favorites(Request $request) {
+    public function favorites(Request $request)
+    {
         return $this->getFilteredPackages($request, 'isFavorites');
     }
-    
-    public function seasonal(Request $request) {
+
+    public function seasonal(Request $request)
+    {
         return $this->getFilteredPackages($request, 'isSeasonal');
     }
-    
-    public function custom(Request $request) {
+
+    public function custom(Request $request)
+    {
         return $this->getFilteredPackages($request, 'isCustomItineraries');
     }
-    
-    public function mustsee(Request $request) {
-        return $this->getFilteredPackages($request, 'isMustSee');
-    }    
 
-    public function show(Request $request, $Oid) {
+    public function mustsee(Request $request)
+    {
+        return $this->getFilteredPackages($request, 'isMustSee');
+    }
+
+    public function show(Request $request, $Oid)
+    {
         try {
             $packages = Packages::findOrFail($Oid);
 
@@ -96,28 +110,30 @@ class PackageController extends Controller
         }
     }
 
-    public function save(Request $request, $Oid = null) {
+    public function save(Request $request, $Oid = null)
+    {
         try {
-            DB::transaction(function () use ($Oid) {
-                if (!$Oid) $package = new Packages();
-                foreach ($package as $key => $row) {
-                    dd($key, $row);
-                }
+            DB::transaction(function () use ($Oid, $request, &$data) {
+                $payload = $request->all();
+                $payload['CreateBy'] = Auth::user()['user_id'];
+                $data = $this->crudController->save($payload, "Packages", $Oid);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => "Package is successfully saved"
+                'message' => "Package is successfully saved",
+                'data' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete package',
+                'message' => 'Failed to save',
             ], 500);
         }
     }
 
-    public function delete(Request $request, $Oid) {
+    public function delete(Request $request, $Oid)
+    {
         try {
             DB::transaction(function () use ($Oid) {
                 $package = Packages::findOrFail($Oid);
@@ -136,7 +152,8 @@ class PackageController extends Controller
         }
     }
 
-    public function stats(Request $request) {
+    public function stats(Request $request)
+    {
         try {
             $userCount = User::count();
             $itinerariesCount = Itineraries::count();
@@ -156,5 +173,4 @@ class PackageController extends Controller
             ], 500);
         }
     }
-
 }
