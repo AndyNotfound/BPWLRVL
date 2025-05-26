@@ -10,7 +10,7 @@ class CreateTravelTransactionDetailsTable extends Migration
     {
         Schema::create('travel_transaction_details', function (Blueprint $table) {
             $table->char('Oid', 38)->primary();
-            $table->unsignedBigInteger('CreateBy');
+            $table->unsignedBigInteger('CreateBy')->nullable();
             $table->foreign('CreateBy')->references('user_id')->on('users')->onDelete('cascade');
 
             $table->timestamp('CreatedAt')->useCurrent();
