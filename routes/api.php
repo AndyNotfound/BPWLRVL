@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComboController;
+use App\Http\Controllers\ItinerariesController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
@@ -78,7 +79,14 @@ Route::prefix('/travel-transaction')->group(function () {
 
 // Itineraries Management
 Route::prefix('/itineraries')->group(function () {
+    Route::get('/list', [ItinerariesController::class, 'list']);
+    Route::get('/{Oid}', [ItinerariesController::class, 'show']);
     Route::get('/combosource', [ComboController::class, 'itineraries']);
+
+    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
+        Route::post('/save/{Oid?}', [ItinerariesController::class, 'save']);
+        Route::delete('{Oid}', [ItinerariesController::class, 'delete']);
+    });
 });
 
 
