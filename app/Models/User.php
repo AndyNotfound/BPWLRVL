@@ -15,7 +15,7 @@ class User extends Authenticatable implements JWTSubject
     use HasFactory, Notifiable, HasRoles;
 
     protected $primaryKey = 'user_id';
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -66,6 +66,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
+    public function hasAnyRole(array $roles)
+    {
+        if (Role::where('name', $roles[0])->first()) return true;
+        return false;
+    }
+
     /**
      * Return a key value array, containing any custom claims
      * that you want to include with the JWT.
@@ -77,5 +83,8 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function roleObj() { return $this->belongsTo(Role::class, 'role', 'id'); }
+    public function roleObj()
+    {
+        return $this->belongsTo(Role::class, 'role', 'id');
+    }
 }
