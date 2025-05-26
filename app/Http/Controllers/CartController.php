@@ -24,7 +24,8 @@ class CartController extends Controller
 {
     use ValidatesRequests;
 
-    public function create(Request $request) {
+    public function create(Request $request)
+    {
         try {
             $data = null;
             DB::transaction(function () use ($request, &$data) {
@@ -74,7 +75,8 @@ class CartController extends Controller
         }
     }
 
-    public function updatePayment(Request $request) {
+    public function updatePayment(Request $request)
+    {
         try {
             DB::transaction(function () use ($request, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->where('Code', $request->external_id)->first();
@@ -96,17 +98,18 @@ class CartController extends Controller
         }
     }
 
-    public function createPayment(Request $request, $Oid) {
+    public function createPayment(Request $request, $Oid)
+    {
         try {
             DB::transaction(function () use ($Oid, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->findOrFail($Oid);
                 $qrCode = paymentProcess($data, "QR");
                 $data->save();
-                if (!is_array($qrCode) && $qrCode->getData(true)['success'] == false) throw new \Exception("Xendit API error");
+                if (!is_array($qrCode) && $qrCode->getData(true)['success'] == false) throw new \Exception($qrCode->getData()->error);
                 $data->PaymentLink = $qrCode['invoice_url'];
             });
 
-            return response()->json([ $data ]);
+            return response()->json([$data]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -116,7 +119,8 @@ class CartController extends Controller
         }
     }
 
-    public function delete(Request $request, $Oid) {
+    public function delete(Request $request, $Oid)
+    {
         try {
             DB::transaction(function () use ($Oid) {
                 $package = Packages::findOrFail($Oid);
@@ -134,5 +138,4 @@ class CartController extends Controller
             ], 500);
         }
     }
-
 }
