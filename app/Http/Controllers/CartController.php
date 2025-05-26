@@ -30,12 +30,13 @@ class CartController extends Controller
             $data = null;
             DB::transaction(function () use ($request, &$data) {
                 $user = Auth::user();
+                $user_id = $user->user_id ?? null;
                 if (!isset($request->Packages)) throw new \Exception('Packages field is required.');
                 $package = Packages::findOrFail($request->Packages);
                 if ($package->MaxCapacity < $request->totalPax) throw new \Exception('Package availability cannot meet the existing supply, the remaining package availability is ' . $package->MaxCapacity);
                 $data = TravelTransaction::create([
                     "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user->user_id,
+                    "CreateBy" => $user_id,
                     "Packages" => $request->Packages,
                     "Code" => "PKG - " . strtoupper(Str::random(7))
                 ]);
@@ -43,7 +44,7 @@ class CartController extends Controller
 
                 $trvTransationDetail = TravelTransactionDetail::create([
                     "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user->user_id,
+                    "CreateBy" => $user_id,
                     "TravelTransaction" => $data->Oid,
                     "TotalPax" => $request->totalPax ?? 1,
                     "Name" => $request->firstName . " " . $request->lastName,

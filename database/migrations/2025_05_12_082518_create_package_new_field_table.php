@@ -15,7 +15,6 @@ return new class extends Migration
             $table->boolean('isCustomItineraries')->default(false);
             $table->boolean('isFavorites')->default(false);
             $table->boolean('isSeasonal')->default(false);
-            $table->boolean('isCustom')->default(false);
             $table->boolean('isMustsee')->default(false);
         });
     }
@@ -29,7 +28,6 @@ return new class extends Migration
             $table->dropColumn('isCustomItineraries');
             $table->dropColumn('isFavorites');
             $table->dropColumn('isSeasonal');
-            $table->dropColumn('isCustom');
             $table->dropColumn('isMustSee');
         });
     }

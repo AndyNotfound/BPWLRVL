@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,24 +13,41 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'owner']);
+        Role::firstOrCreate(['name' => 'client']);
 
         User::Create([
-            'username' => 'Admin',
             'email' => 'admin@example.com',
-            'password' => bcrypt('123')
+            'phone_number' => '1234567890',
+            'username' => 'Admin',
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 1
         ]);
 
         User::Create([
+            'email' => 'owner@example.com',
+            'phone_number' => '0987654321',
             'username' => 'Owner',
-            'email' => 'Owner@example.com',
-            'password' => bcrypt('123')
+            'first_name' => 'Owner',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 2,
         ]);
 
         User::Create([
-            'username' => 'Client',
             'email' => 'client@example.com',
-            'password' => bcrypt('123')
+            'phone_number' => '1234567891',
+            'username' => 'Client',
+            'first_name' => 'Client',
+            'last_name' => 'User',
+            'is_active' => true,
+            'password' => bcrypt('123'),
+            'role' => 3
         ]);
     }
 }
