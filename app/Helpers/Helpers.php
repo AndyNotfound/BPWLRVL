@@ -6,13 +6,15 @@ use App\Models\TravelTransactionDetail;
 use Illuminate\Support\Facades\Http;
 
 if (!function_exists('authPayment')) {
-    function authPayment() {
+    function authPayment()
+    {
         return base64_encode(Settings::select('SecretKey')->first()->SecretKey . ":");
     }
 }
 
 if (!function_exists('paymentProcess')) {
-    function paymentProcess($data, $type) {
+    function paymentProcess($data, $type)
+    {
         try {
             // $response = Http::withHeaders([
             //         'Authorization' => 'Basic ' . authPayment(),
@@ -37,10 +39,10 @@ if (!function_exists('paymentProcess')) {
 
 
             $response = Http::withHeaders([
-                    'Authorization' => 'Basic ' . authPayment(),
-                    'api-version' => '2022-07-31',
-                    'Content-Type' => 'application/json',
-                ])
+                'Authorization' => 'Basic ' . authPayment(),
+                'api-version' => '2022-07-31',
+                'Content-Type' => 'application/json',
+            ])
                 ->post('https://api.xendit.co/v2/invoices', [
                     'external_id' => $data->Code,
                     'amount' => $amount,
@@ -63,7 +65,7 @@ if (!function_exists('paymentProcess')) {
                     // 'expires_at' => Carbon::now()->addDay()->toIso8601String(),
                 ]);
             $responseData = $response->json();
-            // if (!$response->successful()) throw new \Exception("Xendit API error: " . json_encode($responseData));
+            if (isset($responseData['error_code'])) throw new \Exception("Xendit API error: " . $responseData['error_code']);
 
             DB::transaction(function () use ($responseData, $type, &$data) {
                 $ExpiresAt = Carbon::parse($responseData['expiry_date'])->format('Y-m-d H:i:s');

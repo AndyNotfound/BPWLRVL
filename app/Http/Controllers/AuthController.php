@@ -10,6 +10,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -17,7 +19,7 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'email' => 'nullable|string|email|max:255|unique:users',
             'phone_number' => 'nullable|string|max:20|unique:users',
             'username' => 'required|string|max:255|unique:users',
@@ -30,6 +32,13 @@ class AuthController extends Controller
             'username.unique' => 'The username has already been taken.',
             'password.confirmed' => 'The password confirmation does not match.',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
         DB::beginTransaction();
 
@@ -56,11 +65,11 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $this->validate($request, [
-            'login' => 'required|string', 
+            'login' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $loginField = $request->input('login'); 
+        $loginField = $request->input('login');
         $password = $request->input('password');
 
         $user = User::where('email', $loginField)
@@ -69,9 +78,9 @@ class AuthController extends Controller
             ->first();
 
 
-        if (!$user)  return response()->json(['error' => 'Unauthorized'], 401);
+        if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
 
-        if (!Hash::check($password, $user->password)) return response()->json(['error' => 'Unauthorized'], 401);
+        if (!Hash::check($password, $user->password)) return response()->json(['error' => 'Wrong Password'], 404);
 
         $token = JWTAuth::fromUser($user);
 
@@ -79,7 +88,7 @@ class AuthController extends Controller
             'token' => $token,
             'user' => [
                 'id' => $user->user_id,
-                'email'=> $user->email,
+                'email' => $user->email,
                 'phone_number' => $user->phone_number,
                 'username' => $user->username,
                 'first_name' => $user->first_name,

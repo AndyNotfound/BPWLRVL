@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComboController;
+use App\Http\Controllers\ItinerariesController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
@@ -15,8 +16,8 @@ use App\Http\Controllers\UserController;
 
 // Authentication
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login'])->name('auth.login');
-    Route::post('register', [AuthController::class, 'register'])->name('auth.register');
+    Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+    Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 
     Route::middleware(['auth:api', 'refresh_token'])->group(function () {
         Route::post('refresh', [AuthController::class, 'refresh']);
@@ -36,6 +37,7 @@ Route::prefix('/packages')->group(function () {
     Route::get('/{Oid}', [PackageController::class, 'show']);
 
     Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
+        Route::post('/save/{Oid?}', [PackageController::class, 'save']);
         Route::delete('{Oid}', [PackageController::class, 'delete']);
     });
 });
@@ -53,7 +55,7 @@ Route::prefix('/user')->group(function () {
 Route::prefix('/cart')->group(function () {
     Route::post('/create', [CartController::class, 'create']);
     Route::post('/create-payment/{Oid}', [CartController::class, 'createPayment']);
-    
+
     Route::middleware(['auth:api', 'refresh_token'])->group(function () {
         Route::post('/update-payment', [CartController::class, 'updatePayment']);
         /* TODO:
@@ -77,7 +79,14 @@ Route::prefix('/travel-transaction')->group(function () {
 
 // Itineraries Management
 Route::prefix('/itineraries')->group(function () {
+    Route::get('/list', [ItinerariesController::class, 'list']);
+    Route::get('/{Oid}', [ItinerariesController::class, 'show']);
     Route::get('/combosource', [ComboController::class, 'itineraries']);
+
+    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
+        Route::post('/save/{Oid?}', [ItinerariesController::class, 'save']);
+        Route::delete('{Oid}', [ItinerariesController::class, 'delete']);
+    });
 });
 
 
