@@ -119,6 +119,27 @@ class PackageController extends Controller
         }
     }
 
+    public function save(Request $request, $Oid = null) {
+        try {
+            DB::transaction(function () use ($Oid) {
+                if (!$Oid) $package = new Packages();
+                foreach ($package as $key => $row) {
+                    dd($key, $row);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => "Package is successfully saved"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete package',
+            ], 500);
+        }
+    }
+
     public function delete(Request $request, $Oid) {
         try {
             DB::transaction(function () use ($Oid) {
