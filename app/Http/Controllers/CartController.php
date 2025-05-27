@@ -86,10 +86,13 @@ class CartController extends Controller
         try {
             DB::transaction(function () use ($request, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->where('Code', $request->external_id)->first();
+                if (!$data) throw new \Exception("Travel Transaction doesn't exist.");
+                $data->Price = $request->amount;
                 $trvTransationDetail = $data->details[0];
                 $trvTransationDetail->Status = $request->status;
 
-                if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data, $trvTransationDetail);
+                if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data);
+                unset($data->Price);
 
                 $trvTransationDetail->save();
                 $data->save();
