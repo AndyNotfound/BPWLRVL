@@ -37,16 +37,17 @@
     @php
         $data = $emailData[0];
     @endphp
-    <p>Hi {{ $data['details'][0]['Name'] ?? 'Guest' }},</p>
+    <p>Hi, {{ $data['details'][0]['Name'] ?? 'Guest' }},</p>
 
     <p>Thank you for booking with us! Here are your booking details:</p>
 
     <div class="info">
-        <strong>Booking ID:</strong> {{ $data['Code'] ?? 'N/A' }}<br>
-        <strong>Destination:</strong> {{ $data['packages'][0]['Location'] ?? 'N/A' }}<br>
-        <strong>Booking Date:</strong> {{$data['details'][0]['CreatedAt'] ?? 'N/A' }}<br>
+        <strong>Booking ID:</strong> {{ $data['Code'] ?? 'N/A' }} <br>
+        <strong>Name:</strong> {{ $data['details'][0]['Name'] ?? 'N/A' }} <br>
+        <strong>Travel Package:</strong> {{ $data['packages'][0]['Name'] ?? 'N/A' }} <br>
+        <strong>Booking Date:</strong> {{ $data['details'][0]['EnterDate'] ?? 'N/A' }}<br>
+        <strong>Pax:</strong> {{ $data['details'][0]['TotalPax'] ?? 'N/A' }}<br><br>
         <strong>Total Price:</strong> {{ isset($data['Price']) ? 'Rp ' . number_format($data['Price'], 0, ',', '.') : 'N/A' }}
-
     </div>
 
     <p>If you have any questions, feel free to contact us.</p>

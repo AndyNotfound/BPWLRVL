@@ -24,11 +24,11 @@ class globalCRUDController extends Controller
         } else throw new \Exception("Model doesn't exist.");
     }
 
-    public function sendEmail($data)
+    public function sendEmail($data, $bladeName, $type)
     {
         try {
             $emailData = [$data];
-            Mail::to($emailData[0]['details'][0]['Email'])->send(new SendMail($emailData, 'emails.bookingConfirmation', 'Booking Confirmation from Batam Pesona Wisata'));
+            Mail::to($emailData[0]['details'][0]['Email'])->send(new SendMail($emailData, $bladeName, "Booking $type from Batam Pesona Wisata"));
         } catch (\Exception $e) {
             return response()->json([
                 $e->getMessage()

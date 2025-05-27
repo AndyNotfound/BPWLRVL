@@ -62,12 +62,15 @@ class CartController extends Controller
                 ]);
                 $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
                 $trvTransationDetail->save();
+                $trvTransationDetail->Price = $trvTransationDetail->TotalPax * $package->Price;
                 $data->Detail = $trvTransationDetail;
 
                 $package->MaxCapacity -= $trvTransationDetail->TotalPax;
                 $package->save();
+                $data->Package = $package;
             });
 
+            if (!$request->isCustomItineraries) $this->crudController->sendEmail($data, 'emails.bookingInvoice', 'Invoice');
             return response()->json([
                 'success' => true,
                 'data' => $data
@@ -91,7 +94,7 @@ class CartController extends Controller
                 $trvTransationDetail = $data->details[0];
                 $trvTransationDetail->Status = $request->status;
 
-                if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data);
+                if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data, 'emails.bookingConfirmation', 'Confirmation');
                 unset($data->Price);
 
                 $trvTransationDetail->save();
