@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingConfirmationMail;
+use App\Mail\SendMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class globalCRUDController extends Controller
 {
@@ -19,5 +22,17 @@ class globalCRUDController extends Controller
             $data->save();
             return $data;
         } else throw new \Exception("Model doesn't exist.");
+    }
+
+    public function sendEmail($data, $details)
+    {
+        try {
+            $emailData = $data;
+            Mail::to('maximusflorenzo@gmail.com')->send(new SendMail($emailData, 'emails.bookingConfirmation', 'Booking Confirmation from Batam Pesona Wisata'));
+        } catch (\Exception $e) {
+            return response()->json([
+                $e->getMessage()
+            ], 500);
+        }
     }
 }

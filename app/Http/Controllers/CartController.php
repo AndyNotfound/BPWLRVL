@@ -5,18 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Packages;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\TravelTransaction;
-use App\Models\TravelTransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use function Laravel\Prompts\error;
-use function PHPUnit\Framework\throwException;
-
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\TravelTransactionDetail;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use function PHPUnit\Framework\throwException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
@@ -24,6 +23,12 @@ class CartController extends Controller
 {
     use ValidatesRequests;
 
+    private $crudController;
+
+    public function __construct()
+    {
+        $this->crudController = new globalCRUDController();
+    }
     public function create(Request $request)
     {
         try {
@@ -83,6 +88,9 @@ class CartController extends Controller
                 $data = TravelTransaction::with(['details', 'packages'])->where('Code', $request->external_id)->first();
                 $trvTransationDetail = $data->details[0];
                 $trvTransationDetail->Status = $request->status;
+
+                if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data, $trvTransationDetail);
+
                 $trvTransationDetail->save();
                 $data->save();
             });
