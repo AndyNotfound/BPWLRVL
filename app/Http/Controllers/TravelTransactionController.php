@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,15 @@ class TravelTransactionController extends Controller
 {
     use ValidatesRequests;
 
-    public function list(Request $request) {
+    private $crudController;
+
+    public function __construct()
+    {
+        $this->crudController = new globalCRUDController();
+    }
+
+    public function list(Request $request)
+    {
         try {
             $perPage = $request->input('per_page', 10);
             $packages = TravelTransaction::paginate($perPage);
@@ -36,11 +45,12 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function show(Request $request, $Oid) {
+    public function show(Request $request, $Oid)
+    {
         try {
             $travelTransaction = TravelTransaction::with('details')->findOrFail($Oid);
 
-            return response()->json([ $travelTransaction ]);
+            return response()->json([$travelTransaction]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -49,15 +59,19 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function save(Request $request, $Oid) {
+    public function save(Request $request, $Oid = null)
+    {
         try {
             DB::transaction(function () use ($Oid, $request, &$data) {
-                $data = TravelTransaction::findOrFail($Oid);
-                $req = $request->all();
-                foreach ($req as $key => $r) $data->$key = $r;
-                $data->save();
+                $payload = $request->all();
+                $payload['CreateBy'] = Auth::user()['user_id'];
+                $data = $this->crudController->save($payload, "TravelTransaction", $Oid);
             });
-            return response()->json([ $data ]);
+            return response()->json([
+                'success' => true,
+                'message' => "Travel Transaction is successfully saved",
+                'data' => $data
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -65,5 +79,4 @@ class TravelTransactionController extends Controller
             ], 500);
         }
     }
-
 }

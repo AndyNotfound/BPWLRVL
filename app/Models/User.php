@@ -5,9 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -66,9 +67,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
-    public function hasAnyRole(array $roles)
+    public function hasAnyRole($setRole, $userRole)
     {
-        if (Role::where('name', $roles[0])->first()) return true;
+        $role = Role::where('id', $userRole)->first();
+        if ($setRole != $role->name) return true;
         return false;
     }
 

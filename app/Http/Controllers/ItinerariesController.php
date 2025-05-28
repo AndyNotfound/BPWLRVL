@@ -14,8 +14,8 @@ use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class ItinerariesController extends Controller
 {
