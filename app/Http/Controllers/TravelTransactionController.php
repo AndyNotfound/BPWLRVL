@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use function Laravel\Prompts\error;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +19,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class TravelTransactionController extends Controller
 {
     use ValidatesRequests;
+
+    private $crudController;
+
+    public function __construct()
+    {
+        $this->crudController = new globalCRUDController();
+    }
 
     public function list(Request $request)
     {
@@ -51,11 +59,19 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function save(Request $request, $Oid)
+    public function save(Request $request, $Oid = null)
     {
         try {
-            DB::transaction(function () use ($Oid, $request, &$data) {});
-            return response()->json([$data]);
+            DB::transaction(function () use ($Oid, $request, &$data) {
+                $payload = $request->all();
+                $payload['CreateBy'] = Auth::user()['user_id'];
+                $data = $this->crudController->save($payload, "TravelTransaction", $Oid);
+            });
+            return response()->json([
+                'success' => true,
+                'message' => "Travel Transaction is successfully saved",
+                'data' => $data
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
