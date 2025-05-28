@@ -19,7 +19,8 @@ class TravelTransactionController extends Controller
 {
     use ValidatesRequests;
 
-    public function list(Request $request) {
+    public function list(Request $request)
+    {
         try {
             $perPage = $request->input('per_page', 10);
             $packages = TravelTransaction::paginate($perPage);
@@ -36,11 +37,12 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function show(Request $request, $Oid) {
+    public function show(Request $request, $Oid)
+    {
         try {
             $travelTransaction = TravelTransaction::with('details')->findOrFail($Oid);
 
-            return response()->json([ $travelTransaction ]);
+            return response()->json([$travelTransaction]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -49,15 +51,11 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function save(Request $request, $Oid) {
+    public function save(Request $request, $Oid)
+    {
         try {
-            DB::transaction(function () use ($Oid, $request, &$data) {
-                $data = TravelTransaction::findOrFail($Oid);
-                $req = $request->all();
-                foreach ($req as $key => $r) $data->$key = $r;
-                $data->save();
-            });
-            return response()->json([ $data ]);
+            DB::transaction(function () use ($Oid, $request, &$data) {});
+            return response()->json([$data]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -65,5 +63,4 @@ class TravelTransactionController extends Controller
             ], 500);
         }
     }
-
 }
