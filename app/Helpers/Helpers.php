@@ -37,7 +37,6 @@ if (!function_exists('paymentProcess')) {
                 if ($data->details[0]->Itineraries) $amount += $data->details[0]->Price;
             }
 
-
             $response = Http::withHeaders([
                 'Authorization' => 'Basic ' . authPayment(),
                 'api-version' => '2022-07-31',
@@ -52,8 +51,8 @@ if (!function_exists('paymentProcess')) {
                         "given_names" => $data->details[0] ? $data->details[0]->Name : null,
                         "email" => $data->details[0] ? $data->details[0]->Email : null,
                     ],
-                    "success_redirect_url" => "https://jsonformatter.org",
-                    "failure_redirect_url" => "https://satukata.id",
+                    "success_redirect_url" => config('server.web') . "/travel-packages/{$data->Packages}/book?success=true",
+                    "failure_redirect_url" => config('server.web') . "/",
                     "items" => [[
                         "name" => $data->PackagesObj ? $data->PackagesObj->Name : null,
                         "quantity" => $data->details[0] ? $data->details[0]->TotalPax : 1,
