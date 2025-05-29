@@ -72,7 +72,7 @@ Route::prefix('/travel-transaction')->group(function () {
         Route::prefix('/admin')->group(function () {
             Route::get('/list', [TravelTransactionController::class, 'list']);
             Route::get('{Oid}', [TravelTransactionController::class, 'show']);
-            Route::post('{Oid}', [TravelTransactionController::class, 'save']);
+            Route::post('/save/{Oid?}', [TravelTransactionController::class, 'save']);
         });
     });
 });
