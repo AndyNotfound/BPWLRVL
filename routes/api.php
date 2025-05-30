@@ -44,10 +44,13 @@ Route::prefix('/packages')->group(function () {
 
 // User Management
 Route::prefix('/user')->group(function () {
-    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
-        Route::post('/update', [UserController::class, 'update']);
-        Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
-        Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
+    Route::middleware(['auth:api', 'refresh_token'])->group(function () {
+        Route::get('/{userId}', [UserController::class, 'show']);
+        Route::middleware(['role:admin', 'refresh_token'])->group(function () {
+            Route::post('/update', [UserController::class, 'update']);
+            Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
+            Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
+        });
     });
 });
 
