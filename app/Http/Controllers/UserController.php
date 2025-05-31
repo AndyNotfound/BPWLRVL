@@ -3,15 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class UserController extends Controller
 {
     use ValidatesRequests;
+
+    public function show(Request $request, $Oid)
+    {
+        try {
+            $data = User::findOrFail($Oid);
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve user.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     private function checkUniqueFields(Request $request, User $user, array $fields)
     {
@@ -27,6 +44,7 @@ class UserController extends Controller
             }
         }
     }
+
     public function update(Request $request)
     {
         $user = $request->user();
@@ -59,15 +77,17 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(Request $request) {
+    public function destroy(Request $request)
+    {
         $user = $request->user();
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
 
-    public function toggleUserAccountStatus (Request $request) {
+    public function toggleUserAccountStatus(Request $request)
+    {
         $user = $request->user();
-        if($user->is_active) {
+        if ($user->is_active) {
             $user->update(['is_active' => false]);
             return response()->json(['message' => 'User deactivated successfully']);
         } else {
