@@ -52,31 +52,40 @@ class TravelTransactionController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $isSelectAll = $perPage == "-1";
 
-            $transactions = TravelTransaction::with(['package', 'details'])->paginate($perPage);
+            $query = TravelTransaction::with(['package', 'details']);
 
-            $data = $transactions->getCollection()->transform(function ($item) {
+            $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
+            $collection = $isSelectAll ? $result : $result->getCollection();
+
+            $data = $collection->map(function ($item) {
+                $detail = $item->details->first();
+                $package = $item->package;
+
                 return [
                     'Oid' => $item->Oid,
                     'TravelTransactionCode' => $item->Code,
-                    'TravelTransactionStatus' => $item->details->first()?->Status ?? 'N/A',
-                    'TravelTransactionGuestName' => $item->details->first()?->Name ?? 'N/A',
-                    'TravelPackageOid' => $item->package?->Oid ?? 'N/A',
-                    'TravelPackageName' => $item->package?->Name ?? 'N/A',
-                    'TravelPackagePrice' => $item->package?->Price ?? 'N/A',
-                    'TravelPackageFlexible' => $item->package?->isCustomItineraries,
+                    'TravelTransactionStatus' => $detail->Status ?? 'N/A',
+                    'TravelTransactionGuestName' => $detail->Name ?? 'N/A',
+                    'TravelPackageOid' => $package->Oid ?? 'N/A',
+                    'TravelPackageName' => $package->Name ?? 'N/A',
+                    'TravelPackagePrice' => $package->Price ?? 'N/A',
+                    'TravelPackageFlexible' => $package->isCustomItineraries ?? false,
                 ];
             });
 
-            return response()->json([
+            $response = [
                 'success' => true,
                 'data' => [
-                    'current_page' => $transactions->currentPage(),
-                    'per_page' => $transactions->perPage(),
-                    'total' => $transactions->total(),
+                    'current_page' => $isSelectAll ? 1 : $result->currentPage(),
+                    'per_page' => $isSelectAll ? $data->count() : $result->perPage(),
+                    'total' => $isSelectAll ? $data->count() : $result->total(),
                     'data' => $data,
                 ],
-            ]);
+            ];
+
+            return response()->json($response);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -85,6 +94,7 @@ class TravelTransactionController extends Controller
             ], 500);
         }
     }
+
 
     public function show(Request $request, $Oid)
     {
