@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Itineraries;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Packages;
@@ -88,8 +89,12 @@ class TravelTransactionController extends Controller
     public function show(Request $request, $Oid)
     {
         try {
-            $travelTransaction = TravelTransaction::with('details')->findOrFail($Oid);
+            $travelTransaction = TravelTransaction::with(['details', 'package'])->findOrFail($Oid);
+            $itineraryIds = explode(', ', $travelTransaction->details[0]->Itineraries ?? '');
 
+            $travelTransaction->Itineraries = collect($itineraryIds)
+                ->map(fn($id) => Itineraries::findOrFail($id))
+                ->all();
             return response()->json([$travelTransaction]);
         } catch (\Exception $e) {
             return response()->json([
