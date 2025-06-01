@@ -70,7 +70,6 @@ class ItinerariesController extends Controller
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
                 $payload['Role'] = Auth::user()['role'];
-                $payload['CreateBy'] = Auth::user()['user_id'];
                 if (!isset($payload['Code'])) $payload['Code'] = "IT - " . Str::random(8);
                 $data = $this->crudController->save($payload, "Itineraries", $Oid);
             });

@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\ComboController;
 use App\Http\Controllers\ItinerariesController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TravelTransactionController;
 use App\Http\Controllers\UserController;
 
@@ -44,10 +45,13 @@ Route::prefix('/packages')->group(function () {
 
 // User Management
 Route::prefix('/user')->group(function () {
-    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
-        Route::post('/update', [UserController::class, 'update']);
-        Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
-        Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
+    Route::middleware(['auth:api', 'refresh_token'])->group(function () {
+        Route::get('/{userId}', [UserController::class, 'show']);
+        Route::middleware(['role:admin', 'refresh_token'])->group(function () {
+            Route::post('/update', [UserController::class, 'update']);
+            Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
+            Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
+        });
     });
 });
 
@@ -86,6 +90,18 @@ Route::prefix('/itineraries')->group(function () {
     Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
         Route::post('/save/{Oid?}', [ItinerariesController::class, 'save']);
         Route::delete('{Oid}', [ItinerariesController::class, 'delete']);
+    });
+});
+
+
+// Review Management
+Route::prefix('/review')->group(function () {
+    Route::get('/list/{Package}', [ReviewController::class, 'list']);
+    Route::middleware(['auth:api', 'refresh_token'])->group(function () {
+        Route::post('/save/{Oid?}', [ReviewController::class, 'save']);
+        Route::middleware(['role:admin', 'refresh_token'])->group(function () {
+            Route::get('/{Oid}', [ReviewController::class, 'show']);
+        });
     });
 });
 
