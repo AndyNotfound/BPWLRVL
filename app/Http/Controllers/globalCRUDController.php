@@ -11,13 +11,21 @@ use Illuminate\Support\Facades\Mail;
 class globalCRUDController extends Controller
 {
 
-    public function save($payload, $tableName, $Oid = null)
+    public function save($payload, $tableName, $Oid = null, $request = null)
     {
         $modelClass = "\\App\\Models\\" . $tableName;
         if (class_exists($modelClass)) {
             if ($Oid) $data = $modelClass::where('Oid', $Oid)->first();
             else $data = new $modelClass;
-            foreach ($payload as $key => $req) $data->$key = $req;
+            foreach ($payload as $key => $req) {
+                if (str_contains($key, "Image")) {
+                    $image = $request->file($key);
+                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $image->move(public_path('images'), $imageName);
+                    $url = url('images/' . $imageName);
+                    $data->$key = $url;
+                } else $data->$key = $req;
+            }
             if (!$Oid) $data->Oid = (string) Str::uuid();
             $data->save();
             return $data;

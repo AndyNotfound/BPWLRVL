@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Itineraries;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Packages;
@@ -29,6 +30,7 @@ class CartController extends Controller
     {
         $this->crudController = new globalCRUDController();
     }
+
     public function create(Request $request)
     {
         try {
@@ -47,25 +49,13 @@ class CartController extends Controller
                 ]);
                 $data->save();
 
-                $trvTransationDetail = TravelTransactionDetail::create([
-                    "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user_id,
-                    "TravelTransaction" => $data->Oid,
-                    "TotalPax" => $request->totalPax ?? 1,
-                    "Name" => $request->firstName . " " . $request->lastName,
-                    "Email" => $request->Email,
-                    "PhoneNumber" => $request->PhoneNumber,
-                    "EnterDate" => $request->EnterDate,
-                    "ExitDate" => $request->ExitDate,
-                    "isCustomItineraries" => $request->isCustomItineraries ?? 0,
-                    "Itineraries" => isset($request->Itineraries) ? $request->Itineraries : null
-                ]);
-                $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
-                $trvTransationDetail->save();
-                $trvTransationDetail->Price = $trvTransationDetail->TotalPax * $package->Price;
+                if ($request->has('Itineraries')) {
+                    $Itineraries = gettype($request->Itineraries) == "string" ? [$request->Itineraries] : $request->Itineraries;
+                    $trvTransationDetail = $this->detailSaving($request, $user_id, $data, $package, $Itineraries);
+                } else $trvTransationDetail = $this->detailSaving($request, $user_id, $data, $package);
+
                 $data->Detail = $trvTransationDetail;
 
-                $package->MaxCapacity -= $trvTransationDetail->TotalPax;
                 $package->save();
                 $data->Package = $package;
             });
@@ -81,6 +71,55 @@ class CartController extends Controller
                 'message' => 'Failed to create cart.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    private function detailSaving($request, $user_id, $data, $package, $Itineraries = null)
+    {
+        if ($Itineraries) {
+            $Price = 0;
+            foreach ($Itineraries as $itinerary) {
+                $itineraryObj = Itineraries::findOrFail($itinerary);
+                $trvTransationDetail = TravelTransactionDetail::create([
+                    "Oid" => (string) Str::uuid(),
+                    "CreateBy" => $user_id,
+                    "TravelTransaction" => $data->Oid,
+                    "TotalPax" => $request->totalPax ?? 1,
+                    "Name" => $request->firstName . " " . $request->lastName,
+                    "Email" => $request->Email,
+                    "Status" => "Entry",
+                    "PhoneNumber" => $request->PhoneNumber,
+                    "EnterDate" => $request->EnterDate,
+                    "ExitDate" => $request->ExitDate,
+                    "isCustomItineraries" => $request->isCustomItineraries ?? 0,
+                    "Itineraries" => $itinerary
+                ]);
+                $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
+                $trvTransationDetail->save();
+                $Price += $trvTransationDetail->TotalPax * $itineraryObj->Price;
+                $package->MaxCapacity -= $trvTransationDetail->TotalPax;
+            }
+            $Price += $trvTransationDetail->TotalPax * $package->Price;
+            $trvTransationDetail->Price = $Price;
+        } else {
+            $trvTransationDetail = TravelTransactionDetail::create([
+                "Oid" => (string) Str::uuid(),
+                "CreateBy" => $user_id,
+                "TravelTransaction" => $data->Oid,
+                "TotalPax" => $request->totalPax ?? 1,
+                "Name" => $request->firstName . " " . $request->lastName,
+                "Email" => $request->Email,
+                "Status" => "Entry",
+                "PhoneNumber" => $request->PhoneNumber,
+                "EnterDate" => $request->EnterDate,
+                "ExitDate" => $request->ExitDate,
+                "isCustomItineraries" => $request->isCustomItineraries ?? 0,
+                "Itineraries" => null
+            ]);
+            $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
+            $trvTransationDetail->save();
+            $trvTransationDetail->Price = $trvTransationDetail->TotalPax * $package->Price;
+            $package->MaxCapacity -= $trvTransationDetail->TotalPax;
         }
     }
 
