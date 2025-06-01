@@ -25,6 +25,7 @@ class TravelTransactionDetail extends Model
         'TotalPax',
         'Name',
         'Email',
+        'Status',
         'PhoneNumber',
         'EnterDate',
         'ExitDate',
