@@ -42,22 +42,37 @@ class CartController extends Controller
                 $package = Packages::findOrFail($request->Packages);
                 if ($package->MaxCapacity < $request->totalPax) throw new \Exception('Package availability cannot meet the existing supply, the remaining package availability is ' . $package->MaxCapacity);
                 $data = TravelTransaction::create([
-                    "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user_id,
-                    "Packages" => $request->Packages,
-                    "Code" => "PKG - " . strtoupper(Str::random(7))
+                    'Oid'      => (string) Str::uuid(),
+                    'CreateBy' => $user_id,
+                    'Packages' => $request->Packages,
+                    'Code'     => 'PKG - ' . strtoupper(Str::random(7)),
+                    'Price'    => !$request->isCustomItineraries
+                        ? ($request->totalPax ?? 1) * $package->Price
+                        : 0,
                 ]);
                 $data->save();
 
-                if ($request->has('Itineraries')) {
-                    $Itineraries = gettype($request->Itineraries) == "string" ? [$request->Itineraries] : $request->Itineraries;
-                    $trvTransationDetail = $this->detailSaving($request, $user_id, $data, $package, $Itineraries);
-                } else $trvTransationDetail = $this->detailSaving($request, $user_id, $data, $package);
+                if ($request->has('Itineraries'))  $itinerary = implode(', ', $request->Itineraries);
 
-                $data->Detail = $trvTransationDetail;
+                $trvTransationDetail = TravelTransactionDetail::create([
+                    "Oid" => (string) Str::uuid(),
+                    "CreateBy" => $user_id,
+                    "TravelTransaction" => $data->Oid,
+                    "TotalPax" => $request->totalPax ?? 1,
+                    "Name" => $request->firstName . " " . $request->lastName,
+                    "Email" => $request->Email,
+                    "Status" => "Entry",
+                    "PhoneNumber" => $request->PhoneNumber,
+                    "EnterDate" => $request->EnterDate,
+                    "ExitDate" => $request->ExitDate,
+                    "isCustomItineraries" => $request->isCustomItineraries ?? 0,
+                    "Description" => "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price",
+                    "Itineraries" => isset($itinerary) ? $itinerary : null
+                ]);
 
                 $package->save();
                 $data->Package = $package;
+                $data->Detail = $trvTransationDetail;
             });
 
             if (!$request->isCustomItineraries) $this->crudController->sendEmail($data, 'emails.bookingInvoice', 'Invoice');
@@ -74,55 +89,6 @@ class CartController extends Controller
         }
     }
 
-    private function detailSaving($request, $user_id, $data, $package, $Itineraries = null)
-    {
-        if ($Itineraries) {
-            $Price = 0;
-            foreach ($Itineraries as $itinerary) {
-                $itineraryObj = Itineraries::findOrFail($itinerary);
-                $trvTransationDetail = TravelTransactionDetail::create([
-                    "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user_id,
-                    "TravelTransaction" => $data->Oid,
-                    "TotalPax" => $request->totalPax ?? 1,
-                    "Name" => $request->firstName . " " . $request->lastName,
-                    "Email" => $request->Email,
-                    "Status" => "Entry",
-                    "PhoneNumber" => $request->PhoneNumber,
-                    "EnterDate" => $request->EnterDate,
-                    "ExitDate" => $request->ExitDate,
-                    "isCustomItineraries" => $request->isCustomItineraries ?? 0,
-                    "Itineraries" => $itinerary
-                ]);
-                $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
-                $trvTransationDetail->save();
-                $Price += $trvTransationDetail->TotalPax * $itineraryObj->Price;
-                $package->MaxCapacity -= $trvTransationDetail->TotalPax;
-            }
-            $Price += $trvTransationDetail->TotalPax * $package->Price;
-            $trvTransationDetail->Price = $Price;
-        } else {
-            $trvTransationDetail = TravelTransactionDetail::create([
-                "Oid" => (string) Str::uuid(),
-                "CreateBy" => $user_id,
-                "TravelTransaction" => $data->Oid,
-                "TotalPax" => $request->totalPax ?? 1,
-                "Name" => $request->firstName . " " . $request->lastName,
-                "Email" => $request->Email,
-                "Status" => "Entry",
-                "PhoneNumber" => $request->PhoneNumber,
-                "EnterDate" => $request->EnterDate,
-                "ExitDate" => $request->ExitDate,
-                "isCustomItineraries" => $request->isCustomItineraries ?? 0,
-                "Itineraries" => null
-            ]);
-            $trvTransationDetail->Description = "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price";
-            $trvTransationDetail->save();
-            $trvTransationDetail->Price = $trvTransationDetail->TotalPax * $package->Price;
-            $package->MaxCapacity -= $trvTransationDetail->TotalPax;
-        }
-    }
-
     public function updatePayment(Request $request)
     {
         try {
@@ -134,7 +100,6 @@ class CartController extends Controller
                 $trvTransationDetail->Status = $request->status;
 
                 if (strtolower($request->status) == "paid") $this->crudController->sendEmail($data, 'emails.bookingConfirmation', 'Confirmation');
-                unset($data->Price);
 
                 $trvTransationDetail->save();
                 $data->save();
