@@ -27,20 +27,60 @@ class TravelTransactionController extends Controller
         $this->crudController = new globalCRUDController();
     }
 
+    /* Different from requirement
+        public function list(Request $request)
+        {
+            try {
+                $perPage = $request->input('per_page', 10);
+                $packages = TravelTransaction::paginate($perPage);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $packages
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to retrieve packages.',
+                ], 500);
+            }
+        }
+    */
+
     public function list(Request $request)
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $packages = TravelTransaction::paginate($perPage);
+
+            $transactions = TravelTransaction::with(['package', 'details'])->paginate($perPage);
+
+            $data = $transactions->getCollection()->transform(function ($item) {
+                return [
+                    'Oid' => $item->Oid,
+                    'TravelTransactionCode' => $item->Code,
+                    'TravelTransactionStatus' => $item->details->first()?->Status ?? 'N/A',
+                    'TravelTransactionGuestName' => $item->details->first()?->Name ?? 'N/A',
+                    'TravelPackageOid' => $item->package?->Oid ?? 'N/A',
+                    'TravelPackageName' => $item->package?->Name ?? 'N/A',
+                    'TravelPackagePrice' => $item->package?->Price ?? 'N/A',
+                    'TravelPackageFlexible' => $item->package?->isCustomItineraries,
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'data' => $packages
+                'data' => [
+                    'current_page' => $transactions->currentPage(),
+                    'per_page' => $transactions->perPage(),
+                    'total' => $transactions->total(),
+                    'data' => $data,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve packages.',
+                'message' => 'Failed to retrieve travel transactions.',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
