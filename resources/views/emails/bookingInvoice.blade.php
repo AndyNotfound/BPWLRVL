@@ -12,15 +12,15 @@
         <h2 style="color: #3490dc; margin-bottom: 20px;">Booking Invoice</h2>
 
 
-        <p>Hello {{ $data['Detail']['Name'] ?? 'Customer' }},</p>
+        <p>Hello {{ isset($data['Detail']['Name']) ? $data['Detail']['Name'] : 'Customer' }},</p>
 
         <p>Thank you for booking with <strong>Batam Pesona Wisata</strong>. Here are your booking details:</p>
 
         <div>
             <p><strong>Booking ID:</strong> {{ $data['Code'] ?? 'PKG - XXXX' }}</p>
-            <p><strong>Name:</strong> {{ $data['Detail']['Name'] ?? 'Customer' }}</p>
+            <p><strong>Name:</strong> {{ isset($data['Detail']['Name']) ? $data['Detail']['Name'] : 'Customer' }}</p>
             <p><strong>Travel Package:</strong> {{ $data['Package']['Name'] }}</p>
-            <p><strong>Booking Date:</strong> {{ $data['Detail']['EnterDate'] }}</p>
+            <p><strong>Booking Date:</strong> {{ isset($data['Detail']['EnterDate']) ? $data['Detail']['EnterDate'] : 'N/A' }}</p>
             <p><strong>Pax:</strong> {{ $data['Detail']['TotalPax'] }} </p>
         </div>
 

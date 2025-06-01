@@ -14,6 +14,7 @@ class CreateTravelTransactionsTable extends Migration
             $table->char('Packages', 38)->nullable();
             $table->timestamp('CreatedAt')->useCurrent();
             $table->string('Code', 35)->nullable();
+            $table->double('Price')->default(0);
             $table->longText('Description')->nullable();
 
             $table->foreign('CreateBy', 'fk_travel_transactions_createby')

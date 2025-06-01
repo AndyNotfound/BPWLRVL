@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('travel_transaction_details', function (Blueprint $table) {
-            $table->char('Itineraries', 38)->nullable();
-            $table->foreign('Itineraries')->references('Oid')->on('itineraries')->onDelete('cascade');
+            $table->longText('Itineraries', 38)->nullable();
         });
     }
 
