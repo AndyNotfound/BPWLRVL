@@ -14,7 +14,7 @@ if (!function_exists('authPayment')) {
 }
 
 if (!function_exists('paymentProcess')) {
-    function paymentProcess($data, $type)
+    function paymentProcess($data, $type, $request = null)
     {
         try {
             // $response = Http::withHeaders([
@@ -31,7 +31,7 @@ if (!function_exists('paymentProcess')) {
             //         'expires_at' => Carbon::now()->addDay()->toIso8601String(),
             //     ]);
 
-            if (isset($data->Price)) $amount = $data->Price;
+            if (isset($request) && $request->has('Price')) $amount = $request->Price;
             else {
                 $totalPax = $data->details[0] ? $data->details[0]->TotalPax : 1;
                 $amount =  $data->PackagesObj ? $data->PackagesObj->Price * $totalPax : 0;
