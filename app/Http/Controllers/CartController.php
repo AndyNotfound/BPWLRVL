@@ -123,6 +123,7 @@ class CartController extends Controller
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->findOrFail($Oid);
                 $qrCode = paymentProcess($data, "QR", $request);
+                $data->Price = $qrCode->Price;
                 $data->save();
                 if (!is_array($qrCode) && $qrCode->getData(true)['success'] == false) throw new \Exception($qrCode->getData()->error);
                 $data->PaymentLink = $qrCode['invoice_url'];
