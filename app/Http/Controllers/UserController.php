@@ -86,13 +86,12 @@ class UserController extends Controller
 
     public function toggleUserAccountStatus(Request $request)
     {
-        $user = $request->user();
-        if ($user->is_active) {
-            $user->update(['is_active' => false]);
-            return response()->json(['message' => 'User deactivated successfully']);
-        } else {
-            $user->update(['is_active' => true]);
-            return response()->json(['message' => 'User activated successfully']);
-        }
+        $user = User::findOrFail($request->user_id);
+
+        $user->is_active = !$user->is_active;
+        $user->save();
+        $message = $user->is_active ? 'User activated successfully' : 'User deactivated successfully';
+
+        return response()->json(['message' => $message]);
     }
 }
