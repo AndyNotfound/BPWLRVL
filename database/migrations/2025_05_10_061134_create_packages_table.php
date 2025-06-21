@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('packages', function (Blueprint $table) {
             $table->char('Oid', 38)->primary();
-            
+
             $table->unsignedBigInteger('CreateBy');
             $table->foreign('CreateBy')->references('user_id')->on('users')->onDelete('cascade');
 
@@ -28,6 +28,7 @@ return new class extends Migration {
 
             $table->double('Price')->default(0);
             $table->integer('MaxCapacity')->default(0);
+            $table->longText('Itineraries', 38)->nullable();
         });
     }
 
@@ -36,4 +37,3 @@ return new class extends Migration {
         Schema::dropIfExists('packages');
     }
 };
-
