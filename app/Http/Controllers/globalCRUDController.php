@@ -32,7 +32,9 @@ class globalCRUDController extends Controller
             try {
                 $data->save();
             } catch (\Exception $e) {
-                dd('Save failed:', $e->getMessage());
+                return response()->json([
+                    $e->getMessage()
+                ], 500);
             }
             $data->save();
             return $data;

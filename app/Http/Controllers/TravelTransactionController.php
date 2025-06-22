@@ -103,9 +103,9 @@ class TravelTransactionController extends Controller
         try {
             $travelTransaction = TravelTransaction::with(['details', 'package'])->findOrFail($Oid);
 
-            if($travelTransaction->package->isCustomItineraries) {
+            if ($travelTransaction->package->isCustomItineraries) {
                 $itineraryIds = explode(', ', $travelTransaction->details[0]->Itineraries ?? '');
-                
+
                 $travelTransaction->Itineraries = collect($itineraryIds)
                     ->map(fn($id) => Itineraries::findOrFail($id))
                     ->all();
@@ -113,7 +113,6 @@ class TravelTransactionController extends Controller
 
             return response()->json([$travelTransaction]);
         } catch (\Exception $e) {
-            dd($e);
             return response()->json([
                 'success' => false,
                 'message' => 'Travel Transaction Not Found',
@@ -170,7 +169,8 @@ class TravelTransactionController extends Controller
         }
     }
 
-    public function userTravelTransactions(Request $request) {
+    public function userTravelTransactions(Request $request)
+    {
         try {
             $user = Auth::user();
 
