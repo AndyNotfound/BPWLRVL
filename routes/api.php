@@ -36,14 +36,14 @@ Route::prefix('/packages')->group(function () {
     Route::get('/custom', [PackageController::class, 'custom']);
     Route::get('/mustsee', [PackageController::class, 'mustsee']);
     Route::get('/stats', [PackageController::class, 'stats']);
-    
+
     Route::get('/list', [PackageController::class, 'list']);
     Route::get('/{Oid}', [PackageController::class, 'show']);
-    
+
     Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
         Route::post('/save/{Oid?}', [PackageController::class, 'save']);
         Route::delete('{Oid}', [PackageController::class, 'delete']);
-        
+
         Route::prefix('/admin')->group(function () {
             Route::get('/stats', [PackageController::class, 'adminStats']);
         });
@@ -55,13 +55,12 @@ Route::prefix('/user')->group(function () {
     Route::get('/list', [UserController::class, 'list']);
     Route::middleware(['auth:api', 'refresh_token'])->group(function () {
         Route::get('/{userId}', [UserController::class, 'show']);
-        
+
         Route::middleware(['role:admin', 'refresh_token'])->group(function () {
             Route::post('/update', [UserController::class, 'update']);
             Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
             Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
         });
-
     });
 });
 
@@ -111,12 +110,12 @@ Route::prefix('/itineraries')->group(function () {
 // Review Management
 Route::prefix('/review')->group(function () {
     Route::get('/', [ReviewController::class, 'index']);
+    Route::get('/list', [ReviewController::class, 'listGlobal']);
     Route::get('/list/{Package}', [ReviewController::class, 'list']);
     Route::middleware(['auth:api', 'refresh_token'])->group(function () {
         Route::post('/save/{Oid?}', [ReviewController::class, 'save']);
         Route::get('/{Oid}', [ReviewController::class, 'show']);
-        Route::middleware(['role:admin', 'refresh_token'])->group(function () {
-        });
+        Route::middleware(['role:admin', 'refresh_token'])->group(function () {});
     });
 });
 
