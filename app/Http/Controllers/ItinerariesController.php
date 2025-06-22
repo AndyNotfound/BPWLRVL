@@ -32,11 +32,14 @@ class ItinerariesController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $Itineraries = Itineraries::paginate($perPage);
+            $isSelectAll = $perPage == "-1";
+
+            $result = $isSelectAll ? Itineraries::get() : Itineraries::paginate($perPage);
+            $collection = $isSelectAll ? $result : $result->getCollection();
 
             return response()->json([
                 'success' => true,
-                'data' => $Itineraries
+                'data' => $collection
             ]);
         } catch (\Exception $e) {
             return response()->json([

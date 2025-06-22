@@ -33,13 +33,17 @@ class UserController extends Controller
     public function list(Request $request)
     {
         try {
-            $perPage = $request->input('per_page', 10);
+            $perPage = $request->input('per_page', 1);
+            $isSelectAll = $perPage == "-1";
 
             // Paginate the users with their roles
-            $paginator = User::with('roleObj')->paginate($perPage);
+            $query = User::with('roleObj');
+
+            $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
+            $paginator = $isSelectAll ? $result : $result->getCollection();
 
             // Transform each item in the paginated collection
-            $data = $paginator->getCollection()->map(function ($user) {
+            $data = $paginator->map(function ($user) {
                 return [
                     'user_id' => $user->user_id,
                     'role' => $user->role,
@@ -54,9 +58,6 @@ class UserController extends Controller
                     'updated_at' => $user->updated_at,
                 ];
             });
-
-            // Replace original collection with transformed one
-            $paginator->setCollection($data);
 
             return response()->json([
                 'success' => true,

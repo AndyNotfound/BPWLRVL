@@ -21,12 +21,12 @@ class ReviewController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-    
+
             $data = review::leftJoin('packages', 'reviews.Packages', '=', 'packages.Oid')
                 ->leftJoin('users', 'reviews.CreateBy', '=', 'users.user_id')
                 ->select('reviews.*', 'users.username', 'packages.name as PackageName')
                 ->paginate($perPage);
-    
+
             return response()->json([
                 'success' => true,
                 'data' => $data
@@ -37,21 +37,25 @@ class ReviewController extends Controller
                 'message' => 'Failed to retrieve Reviews.',
             ], 500);
         }
-    }    
+    }
 
     public function list(Request $request, $package)
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $data = review::where('Packages', $package)
+            $isSelectAll = $perPage == "-1";
+
+            $query = review::where('Packages', $package)
                 ->leftJoin('packages', 'reviews.Packages', '=', 'packages.Oid')
                 ->leftJoin('users', 'reviews.CreateBy', '=', 'users.user_id')
-                ->select('reviews.*', 'users.username', 'packages.name as PackageName')
-                ->paginate($perPage);
+                ->select('reviews.*', 'users.username', 'packages.name as PackageName');
+
+            $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
+            $collection = $isSelectAll ? $result : $result->getCollection();
 
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $collection
             ]);
         } catch (\Exception $e) {
             return response()->json([
