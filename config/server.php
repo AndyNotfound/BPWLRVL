@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'web' => env('WEB_SERVER', 'www.google.com')
+    'web' => env('WEB_SERVER', 'https://client.batampesonawisata.com')
 ];
