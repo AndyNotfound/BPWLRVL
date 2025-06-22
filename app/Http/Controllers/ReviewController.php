@@ -17,6 +17,28 @@ class ReviewController extends Controller
         $this->crudController = new globalCRUDController();
     }
 
+    public function index(Request $request)
+    {
+        try {
+            $perPage = $request->input('per_page', 10);
+    
+            $data = review::leftJoin('packages', 'reviews.Packages', '=', 'packages.Oid')
+                ->leftJoin('users', 'reviews.CreateBy', '=', 'users.user_id')
+                ->select('reviews.*', 'users.username', 'packages.name as PackageName')
+                ->paginate($perPage);
+    
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve Reviews.',
+            ], 500);
+        }
+    }    
+
     public function list(Request $request, $package)
     {
         try {

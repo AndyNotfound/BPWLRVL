@@ -220,7 +220,7 @@ class PackagesSeeder extends Seeder
             $i = $index + 1;
             Packages::create([
                 'Oid' => Str::uuid(),
-                'CreateBy' => 13,
+                'CreateBy' => 1,
                 'CreatedAt' => now(),
                 'Name' => $data['Name'],
                 'Title' => $data['Title'],

@@ -70,8 +70,10 @@ class TravelTransactionController extends Controller
                     'TravelTransactionGuestName' => $detail->Name ?? 'N/A',
                     'TravelPackageOid' => $package->Oid ?? 'N/A',
                     'TravelPackageName' => $package->Name ?? 'N/A',
-                    'TravelPackagePrice' => $package->Price ?? 'N/A',
+                    'TravelPackagePrice' => $package->isCustomItineraries ? $item->Price : $package->Price ?? 'N/A',
                     'TravelPackageFlexible' => $package->isCustomItineraries ?? false,
+                    'TravelPackageDateStart' => $detail->EnterDate ?? 'N/A',
+                    'TravelPackageDateEnd' => $detail->ExitDate ?? 'N/A',
                 ];
             });
 
@@ -100,13 +102,18 @@ class TravelTransactionController extends Controller
     {
         try {
             $travelTransaction = TravelTransaction::with(['details', 'package'])->findOrFail($Oid);
-            $itineraryIds = explode(', ', $travelTransaction->details[0]->Itineraries ?? '');
 
-            $travelTransaction->Itineraries = collect($itineraryIds)
-                ->map(fn($id) => Itineraries::findOrFail($id))
-                ->all();
+            if($travelTransaction->package->isCustomItineraries) {
+                $itineraryIds = explode(', ', $travelTransaction->details[0]->Itineraries ?? '');
+                
+                $travelTransaction->Itineraries = collect($itineraryIds)
+                    ->map(fn($id) => Itineraries::findOrFail($id))
+                    ->all();
+            }
+
             return response()->json([$travelTransaction]);
         } catch (\Exception $e) {
+            dd($e);
             return response()->json([
                 'success' => false,
                 'message' => 'Travel Transaction Not Found',
@@ -131,6 +138,56 @@ class TravelTransactionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed To Save/Update Travel Transaction',
+            ], 500);
+        }
+    }
+
+    public function adminStats(Request $request)
+    {
+        try {
+            $totalClients = User::whereRelation('roleObj', 'name', 'client')->count();
+            $totalTransactions = TravelTransaction::count();
+            $totalPaidTransactions = TravelTransaction::whereRelation('details', 'Status', 'Paid')->count();
+            $totalUnpaidTransactions = TravelTransaction::whereHas('details', function ($query) {
+                $query->whereIn('Status', ['Entry', 'Process']);
+            })->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'totalClients' => $totalClients,
+                    'totalTransactions' => $totalTransactions,
+                    'totalPaidTransactions' => $totalPaidTransactions,
+                    'totalUnpaidTransactions' => $totalUnpaidTransactions
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve package stats.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function userTravelTransactions(Request $request) {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+
+            $data = TravelTransaction::with(['details', 'package'])->where('CreateBy', $user->user_id)->get();
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve user travel transactions.',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
