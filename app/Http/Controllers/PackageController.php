@@ -86,8 +86,17 @@ class PackageController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
             $isSelectAll = $perPage == "-1";
+            $search = $request->input('search');
 
-            $result = $isSelectAll ? Packages::get() : Packages::paginate($perPage);
+            $query = Packages::query();
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('Name', 'like', '%' . $search . '%')
+                        ->orWhere('Location', 'like', '%' . $search . '%');
+                });
+            }
+
+            $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
             $collection = $isSelectAll ? $result : $result->getCollection();
 
             return response()->json([
