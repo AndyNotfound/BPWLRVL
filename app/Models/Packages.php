@@ -29,7 +29,8 @@ class Packages extends Model
         'ValidDateStart',
         'ValidDateEnd',
         'Price',
-        'MaxCapacity'
+        'MaxCapacity',
+        'Itineraries'
     ];
     public $timestamps = false;
 
