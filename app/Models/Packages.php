@@ -37,4 +37,9 @@ class Packages extends Model
     protected $casts = [
         'Oid' => 'string',
     ];
+
+    public function reviews()
+    {
+        return $this->hasMany(review::class, 'Packages', 'Oid');
+    }
 }
