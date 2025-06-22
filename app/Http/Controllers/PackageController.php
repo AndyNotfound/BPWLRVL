@@ -20,12 +20,12 @@ class PackageController extends Controller
         $this->crudController = new globalCRUDController();
     }
 
-    private function getFilteredPackages(Request $request, string $filterField)
+    private function getFilteredPackages(Request $request)
     {
         try {
             $perPage = $request->input('per_page', 10);
 
-            $packages = Packages::where($filterField, 1)->paginate($perPage);
+            $packages = Packages::inRandomOrder()->paginate($perPage);
             $packageIds = $packages->pluck('Oid');
 
             $popularCounts = DB::table('travel_transactions')
@@ -54,6 +54,32 @@ class PackageController extends Controller
         }
     }
 
+    public function adminStats(Request $request)
+    {
+        try {
+            $totalPackages = Packages::count();
+            $customItinerariesCount = Packages::where('isCustomItineraries', 1)->count();
+            $nonCustomItinerariesCount = Packages::where('isCustomItineraries', 0)->count();
+            $totalItineraries = Itineraries::count();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'totalPackages' => $totalPackages,
+                    'totalCustomItineraries' => $customItinerariesCount,
+                    'totalFixedItineraries' => $nonCustomItinerariesCount,
+                    'totalItineraries' => $totalItineraries,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve package stats.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function list(Request $request)
     {
@@ -75,22 +101,22 @@ class PackageController extends Controller
 
     public function favorites(Request $request)
     {
-        return $this->getFilteredPackages($request, 'isFavorites');
+        return $this->getFilteredPackages($request);
     }
 
     public function seasonal(Request $request)
     {
-        return $this->getFilteredPackages($request, 'isSeasonal');
+        return $this->getFilteredPackages($request);
     }
 
     public function custom(Request $request)
     {
-        return $this->getFilteredPackages($request, 'isCustomItineraries');
+        return $this->getFilteredPackages($request);
     }
 
     public function mustsee(Request $request)
     {
-        return $this->getFilteredPackages($request, 'isMustSee');
+        return $this->getFilteredPackages($request);
     }
 
     public function show(Request $request, $Oid)

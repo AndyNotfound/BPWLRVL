@@ -25,7 +25,7 @@
         </div>
 
         <div style="margin-top: 50px;">
-            <p><strong>Total Price:</strong> Rp {{ number_format($data['Detail']['Price'], 0, ',', '.') }}</p>
+            <p><strong>Total Price:</strong> Rp {{ number_format($data['Price'], 0, ',', '.') }}</p>
         </div>
 
         <p>If you have any questions, feel free to contact our support.</p>

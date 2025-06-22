@@ -24,9 +24,18 @@ class globalCRUDController extends Controller
                     $image->move(public_path('images'), $imageName);
                     $url = url('images/' . $imageName);
                     $data->$key = $url;
-                } else $data->$key = $req;
+                } else {
+                    $data->$key = $req;
+                }
             }
             if (!$Oid) $data->Oid = (string) Str::uuid();
+            try {
+                $data->save();
+            } catch (\Exception $e) {
+                return response()->json([
+                    $e->getMessage()
+                ], 500);
+            }
             $data->save();
             return $data;
         } else throw new \Exception("Model doesn't exist.");

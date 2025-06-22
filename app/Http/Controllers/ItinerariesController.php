@@ -91,18 +91,18 @@ class ItinerariesController extends Controller
     {
         try {
             DB::transaction(function () use ($Oid) {
-                $package = Packages::findOrFail($Oid);
+                $package = Itineraries::findOrFail($Oid);
                 $package->delete();
             });
 
             return response()->json([
                 'success' => true,
-                'message' => "Package is successfully deleted"
+                'message' => "Itinerary is successfully deleted"
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete package',
+                'message' => 'Failed to delete itinerary',
             ], 500);
         }
     }
