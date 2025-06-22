@@ -54,6 +54,32 @@ class PackageController extends Controller
         }
     }
 
+    public function adminStats(Request $request)
+    {
+        try {
+            $totalPackages = Packages::count();
+            $customItinerariesCount = Packages::where('isCustomItineraries', 1)->count();
+            $nonCustomItinerariesCount = Packages::where('isCustomItineraries', 0)->count();
+            $totalItineraries = Itineraries::count();
+    
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'totalPackages' => $totalPackages,
+                    'totalCustomItineraries' => $customItinerariesCount,
+                    'totalFixedItineraries' => $nonCustomItinerariesCount,
+                    'totalItineraries' => $totalItineraries,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve package stats.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
 
     public function list(Request $request)
     {

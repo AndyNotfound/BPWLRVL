@@ -25,7 +25,7 @@ class ItinerarySeeder extends Seeder
                 'Role' => 1,
                 'Code' => 'ITINERARY001' . $i,
                 'Name' => 'Sample Itinerary' . $i,
-                'Price' => rand(100, 999) * 1000,
+                // 'Price' => rand(100, 999) * 1000,
             ]);
         }
     }
