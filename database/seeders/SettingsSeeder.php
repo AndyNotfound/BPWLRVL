@@ -16,7 +16,7 @@ class SettingsSeeder extends Seeder
     {
         Settings::create([
             "Oid" => (string) Str::uuid(),
-            'SecretKey' => "xnd_development_cuLsW78TsykciQcivQf32aSCVnACCj6WY6c6tes8SBr7yp5gzHkpgfgu8gQ3uGg",
+            'SecretKey' => "xnd_development_62YxANBgUFrEwDR4SQsmKjw9gafR15PWEvcfT3FcfdI2WUJ8tNPumlzEruDOl",
             'Password' => ""
         ]);
     }

@@ -30,48 +30,6 @@ class UserController extends Controller
         }
     }
 
-    public function list(Request $request)
-    {
-        try {
-            $perPage = $request->input('per_page', 10);
-
-            // Paginate the users with their roles
-            $paginator = User::with('roleObj')->paginate($perPage);
-
-            // Transform each item in the paginated collection
-            $data = $paginator->getCollection()->map(function ($user) {
-                return [
-                    'user_id' => $user->user_id,
-                    'role' => $user->role,
-                    'role_name' => optional($user->roleObj)->name,
-                    'email' => $user->email,
-                    'phone_number' => $user->phone_number,
-                    'username' => $user->username,
-                    'first_name' => $user->first_name,
-                    'last_name' => $user->last_name,
-                    'is_active' => $user->is_active,
-                    'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at,
-                ];
-            });
-
-            // Replace original collection with transformed one
-            $paginator->setCollection($data);
-
-            return response()->json([
-                'success' => true,
-                'data' => $paginator
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve users.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-
     private function checkUniqueFields(Request $request, User $user, array $fields)
     {
         foreach ($fields as $field) {

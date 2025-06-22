@@ -64,8 +64,7 @@ if (!function_exists('paymentProcess')) {
                     // "channel_code" => "ID_DANA",
                     // 'expires_at' => Carbon::now()->addDay()->toIso8601String(),
                 ]);
-
-                $responseData = $response->json();
+            $responseData = $response->json();
             if (isset($responseData['error_code'])) throw new \Exception("Xendit API error: " . $responseData['error_code']);
 
             DB::transaction(function () use ($responseData, $type, &$data) {
@@ -79,7 +78,6 @@ if (!function_exists('paymentProcess')) {
 
                 $trvTransationDetail->save();
             });
-
             return $responseData;
         } catch (\Exception $e) {
             return response()->json([

@@ -15,7 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'refresh_token' => \App\Http\Middleware\CheckTokenExpiration::class,
-            'optional' => \App\Http\Middleware\OptionalJwtAuth::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

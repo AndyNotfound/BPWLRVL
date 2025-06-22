@@ -13,8 +13,6 @@ class RoleMiddleware
         $authGuard = Auth::guard($guard);
         $user = $authGuard->user();
 
-        // dd($user);
-
         if (! $user) {
             return Response::json([
                 'success' => false,

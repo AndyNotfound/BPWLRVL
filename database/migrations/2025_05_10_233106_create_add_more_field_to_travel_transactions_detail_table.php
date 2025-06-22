@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('Type', 35)->nullable();
             $table->string('PaymentID', 55)->nullable();
             $table->string('Status', 35)->nullable();
-            $table->timestamp('ExpiresAt')->nullable();
+            $table->timestamp('ExpiresAt')->default(DB::raw('CURRENT_TIMESTAMP + INTERVAL 1 DAY'));
         });
     }
 
