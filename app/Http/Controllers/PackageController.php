@@ -85,11 +85,23 @@ class PackageController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $packages = Packages::paginate($perPage);
+            $isSelectAll = $perPage == "-1";
+            $search = $request->input('search');
+
+            $query = Packages::query();
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('Name', 'like', '%' . $search . '%')
+                        ->orWhere('Location', 'like', '%' . $search . '%');
+                });
+            }
+
+            $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
+            $collection = $isSelectAll ? $result : $result->getCollection();
 
             return response()->json([
                 'success' => true,
-                'data' => $packages
+                'data' => $collection
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -122,7 +134,7 @@ class PackageController extends Controller
     public function show(Request $request, $Oid)
     {
         try {
-            $packages = Packages::findOrFail($Oid);
+            $packages = Packages::with(['reviews'])->findOrFail($Oid);
 
             return response()->json([
                 'success' => true,
