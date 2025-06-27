@@ -134,7 +134,7 @@ class PackageController extends Controller
     public function show(Request $request, $Oid)
     {
         try {
-            $packages = Packages::with(['reviews'])->findOrFail($Oid);
+            $packages = Packages::with(['reviews', 'reviews.creator'])->findOrFail($Oid);
 
             return response()->json([
                 'success' => true,
