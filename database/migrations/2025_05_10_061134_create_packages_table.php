@@ -28,7 +28,7 @@ return new class extends Migration {
 
             $table->double('Price')->default(0);
             $table->integer('MaxCapacity')->default(0);
-            $table->longText('Itineraries', 38)->nullable();
+            $table->longText('Itineraries')->nullable();
         });
     }
 
