@@ -163,7 +163,10 @@ class PackageController extends Controller
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
-                if (isset($payload['Itineraries'])) $payload['Itineraries'] = implode(', ', $request->Itineraries);
+                if (isset($payload['Itineraries'])) {
+                    $payload['Itineraries'] = json_decode($payload['Itineraries'], true);
+                    $payload['Itineraries'] = implode(', ', $payload['Itineraries']);
+                }
                 $data = $this->crudController->save($payload, "Packages", $Oid, $request);
             });
 
