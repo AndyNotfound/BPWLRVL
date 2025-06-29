@@ -136,6 +136,15 @@ class PackageController extends Controller
         try {
             $packages = Packages::with(['reviews'])->findOrFail($Oid);
 
+            $arrayItineraries = [];
+
+            if (!empty($packages->Itineraries)) {
+                foreach (explode(", ", $packages->Itineraries) as $itineraryOid) {
+                    $arrayItineraries[] = Itineraries::where("Oid", $itineraryOid)->first();
+                }
+                if ($arrayItineraries) $packages->Itineraries = $arrayItineraries;
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $packages
