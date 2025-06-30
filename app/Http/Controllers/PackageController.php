@@ -136,6 +136,15 @@ class PackageController extends Controller
         try {
             $packages = Packages::with(['reviews', 'reviews.creator'])->findOrFail($Oid);
 
+            $arrayItineraries = [];
+
+            if (!empty($packages->Itineraries)) {
+                foreach (explode(", ", $packages->Itineraries) as $itineraryOid) {
+                    $arrayItineraries[] = Itineraries::where("Oid", $itineraryOid)->first();
+                }
+                if ($arrayItineraries) $packages->Itineraries = $arrayItineraries;
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $packages
@@ -154,7 +163,10 @@ class PackageController extends Controller
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
-                if (isset($payload['Itineraries'])) $payload['Itineraries'] = implode(', ', $request->Itineraries);
+                if (isset($payload['Itineraries'])) {
+                    $payload['Itineraries'] = json_decode($payload['Itineraries'], true);
+                    $payload['Itineraries'] = implode(', ', $payload['Itineraries']);
+                }
                 $data = $this->crudController->save($payload, "Packages", $Oid, $request);
             });
 
