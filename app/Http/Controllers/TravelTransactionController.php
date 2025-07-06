@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class TravelTransactionController extends Controller
 {
@@ -191,4 +192,148 @@ class TravelTransactionController extends Controller
             ], 500);
         }
     }
+
+    public function salesOverview(Request $request)
+    {
+        try {
+            $paidStatuses = ['paid', 'success', 'completed']; // ganti sesuai status di databasenya
+
+            // Sales & Bookings
+            $salesData = DB::table('travel_transactions')
+                ->whereIn('Oid', function ($query) use ($paidStatuses) {
+                    $query->select('TravelTransaction')
+                        ->from('travel_transaction_details')
+                        ->whereIn('Status', $paidStatuses);
+                })
+                ->get();
+
+            $sales = $salesData->sum('Price');
+            $bookings = $salesData->count();
+
+            // Travelers
+            $travelers = DB::table('travel_transaction_details')
+                ->whereIn('Status', $paidStatuses)
+                ->sum('TotalPax');
+
+            // Travel Packages ordered (unique), filter by current month
+            $travelPackages = DB::table('travel_transactions')
+                ->whereIn('Oid', function ($query) use ($paidStatuses) {
+                    $query->select('TravelTransaction')
+                        ->from('travel_transaction_details')
+                        ->whereIn('Status', $paidStatuses);
+                })
+                ->whereMonth('CreatedAt', Carbon::now()->month)
+                ->whereYear('CreatedAt', Carbon::now()->year)
+                ->distinct('Packages')
+                ->count('Packages');
+
+            $data = [
+                [
+                    'title' => 'Sales',
+                    'stats' => 'IDR ' . number_format($sales, 0, ',', '.'),
+                    'icon'  => 'tabler-currency-dollar',
+                    'color' => 'success',
+                ],
+                [
+                    'title' => 'Bookings',
+                    'stats' => number_format($bookings, 0, ',', '.'),
+                    'icon'  => 'tabler-chart-pie-2',
+                    'color' => 'primary',
+                ],
+                [
+                    'title' => 'Travelers',
+                    'stats' => number_format($travelers, 0, ',', '.'),
+                    'icon'  => 'tabler-users',
+                    'color' => 'info',
+                ],
+                [
+                    'title' => 'Travel Packages',
+                    'stats' => number_format($travelPackages, 0, ',', '.'),
+                    'icon'  => 'tabler-shopping-cart',
+                    'color' => 'error',
+                ],
+            ];
+
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get transaction statistics.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function weeklyStats(Request $request)
+    {
+        try {
+            $paidStatuses = ['paid', 'success', 'completed']; // sesuaikan ini kalau kamu pakai status berbeda
+            $now = Carbon::now();
+            $startOfWeek = $now->copy()->startOfWeek(); // Senin
+            $endOfWeek = $now->copy()->endOfWeek();     // Minggu
+
+            $paidTransactionIds = DB::table('travel_transaction_details')
+                ->whereIn('Status', $paidStatuses)
+                ->pluck('TravelTransaction');
+
+            $netSales = DB::table('travel_transactions')
+                ->whereIn('Oid', $paidTransactionIds)
+                ->whereBetween('CreatedAt', [$startOfWeek, $endOfWeek])
+                ->sum('Price');
+
+            
+            $unpaidTransactionIds = DB::table('travel_transaction_details')
+                ->whereNotIn('Status', $paidStatuses)
+                ->pluck('TravelTransaction');
+
+            $reservedSales = DB::table('travel_transactions')
+                ->whereIn('Oid', $unpaidTransactionIds)
+                ->whereBetween('CreatedAt', [$startOfWeek, $endOfWeek])
+                ->sum('Price');
+
+            $transactionsThisWeek = DB::table('travel_transactions')
+                ->whereBetween('CreatedAt', [$startOfWeek, $endOfWeek])
+                ->get();
+
+            $chartSeries = array_fill(0, 7, 0); // index 0 = Senin
+
+            foreach ($transactionsThisWeek as $transaction) {
+                $dayIndex = Carbon::parse($transaction->CreatedAt)->dayOfWeekIso - 1; // ISO: 1=Mon → 0 index
+                $chartSeries[$dayIndex]++;
+            }
+
+            $summary = [
+                [
+                    'avatarIcon' => 'tabler-currency-dollar',
+                    'avatarColor' => 'success',
+                    'title' => 'Net Sales',
+                    'subtitle' => 'Paid Travel Transactions',
+                    'earnings' => 'IDR ' . number_format($netSales, 0, ',', '.'),
+                ],
+                [
+                    'avatarIcon' => 'tabler-credit-card',
+                    'avatarColor' => 'secondary',
+                    'title' => 'Reserved Sales',
+                    'subtitle' => 'Unpaid Travel Transactions',
+                    'earnings' => 'IDR ' . number_format($reservedSales, 0, ',', '.'),
+                ]
+            ];
+
+            return response()->json([
+                'summary' => $summary,
+                'series' => [
+                    [
+                        'data' => $chartSeries,
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch weekly transaction stats.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

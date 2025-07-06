@@ -130,6 +130,7 @@ class UserController extends Controller
     public function toggleUserAccountStatus(Request $request)
     {
         $user = User::findOrFail($request->user_id);
+        // dd($user);
 
         $user->is_active = !$user->is_active;
         $user->save();

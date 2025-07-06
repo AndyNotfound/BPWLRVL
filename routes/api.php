@@ -12,11 +12,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Middleware\OptionalJwtAuth;
 use Tymon\JWTAuth\Http\Middleware\AuthenticateOptional;
 
-/* TODO: 
-    1. Add middleware for role-based access control [DONE]
-    2. Ensure role-based middleware working as expected [DONE]
-*/
-
 // Authentication
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
@@ -39,13 +34,14 @@ Route::prefix('/packages')->group(function () {
 
     Route::get('/list', [PackageController::class, 'list']);
     Route::get('/{Oid}', [PackageController::class, 'show']);
-
+    
     Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
         Route::post('/save/{Oid?}', [PackageController::class, 'save']);
         Route::delete('{Oid}', [PackageController::class, 'delete']);
-
+        
         Route::prefix('/admin')->group(function () {
             Route::get('/stats', [PackageController::class, 'adminStats']);
+            Route::get('/top-packages', [PackageController::class, 'topPackages']);
         });
     });
 });
@@ -56,9 +52,9 @@ Route::prefix('/user')->group(function () {
     Route::middleware(['auth:api', 'refresh_token'])->group(function () {
         Route::get('/{userId}', [UserController::class, 'show']);
 
+        Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
         Route::middleware(['role:admin', 'refresh_token'])->group(function () {
             Route::post('/update', [UserController::class, 'update']);
-            Route::post('/active', [UserController::class, 'toggleUserAccountStatus']);
             Route::post('/assign-role/{userId}', [UserController::class, 'assignRoleToUser']);
         });
     });
@@ -86,6 +82,9 @@ Route::prefix('/travel-transaction')->group(function () {
     });
     Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
         Route::prefix('/admin')->group(function () {
+            Route::get('/sales-overview', [TravelTransactionController::class, 'salesOverview']);
+            Route::get('/weekly-earnings', [TravelTransactionController::class, 'weeklyStats']);
+
             Route::get('/stats', [TravelTransactionController::class, 'adminStats']);
             Route::get('/list', [TravelTransactionController::class, 'list']);
             Route::get('{Oid}', [TravelTransactionController::class, 'show']);
