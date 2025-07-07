@@ -158,7 +158,6 @@ class PackageController extends Controller
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
 
-                // ✅ Solusi 1 — Generalisasi aman untuk Itineraries
                 if (isset($payload['Itineraries'])) {
                     if (is_string($payload['Itineraries'])) {
                         $decoded = json_decode($payload['Itineraries'], true);

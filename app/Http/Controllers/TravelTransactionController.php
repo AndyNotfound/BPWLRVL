@@ -182,7 +182,41 @@ class TravelTransactionController extends Controller
                 ], 401);
             }
 
-            $data = TravelTransaction::with(['details', 'package'])->where('CreateBy', $user->user_id)->get();
+            $data = TravelTransaction::with(['details', 'package'])
+                ->where('CreateBy', $user->user_id)
+                ->get();
+
+            $allItineraryOids = [];
+
+            foreach ($data as $transaction) {
+                foreach ($transaction->details as $detail) {
+                    if ($detail->Itineraries) {
+                        $oids = json_decode($detail->Itineraries, true);
+                        if (is_array($oids)) {
+                            $allItineraryOids = array_merge($allItineraryOids, $oids);
+                        }
+                    }
+                }
+            }
+
+            $itineraryMap = DB::table('itineraries')
+                ->whereIn('Oid', array_unique($allItineraryOids))
+                ->pluck('Name', 'Oid');
+
+            foreach ($data as $transaction) {
+                foreach ($transaction->details as $detail) {
+                    $detail->ItineraryNames = [];
+                    if ($detail->Itineraries) {
+                        $oids = json_decode($detail->Itineraries, true);
+                        if (is_array($oids)) {
+                            $detail->ItineraryNames = collect($oids)->map(function ($oid) use ($itineraryMap) {
+                                return $itineraryMap[$oid] ?? null;
+                            })->filter()->values();
+                        }
+                    }
+                }
+            }
+
             return response()->json($data);
         } catch (\Exception $e) {
             return response()->json([
@@ -193,12 +227,12 @@ class TravelTransactionController extends Controller
         }
     }
 
+
     public function salesOverview(Request $request)
     {
         try {
             $paidStatuses = ['paid', 'success', 'completed']; // ganti sesuai status di databasenya
 
-            // Sales & Bookings
             $salesData = DB::table('travel_transactions')
                 ->whereIn('Oid', function ($query) use ($paidStatuses) {
                     $query->select('TravelTransaction')
@@ -210,12 +244,10 @@ class TravelTransactionController extends Controller
             $sales = $salesData->sum('Price');
             $bookings = $salesData->count();
 
-            // Travelers
             $travelers = DB::table('travel_transaction_details')
                 ->whereIn('Status', $paidStatuses)
                 ->sum('TotalPax');
 
-            // Travel Packages ordered (unique), filter by current month
             $travelPackages = DB::table('travel_transactions')
                 ->whereIn('Oid', function ($query) use ($paidStatuses) {
                     $query->select('TravelTransaction')
