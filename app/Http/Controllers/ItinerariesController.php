@@ -10,7 +10,9 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+
 use function Laravel\Prompts\error;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -73,7 +75,9 @@ class ItinerariesController extends Controller
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
                 $payload['Role'] = Auth::user()['role'];
-                if (!isset($payload['Code'])) $payload['Code'] = "IT - " . Str::random(8);
+                if (!isset($payload['Code'])) {
+                    $payload['Code'] = "IT - " . Str::random(8);
+                }
                 $data = $this->crudController->save($payload, "Itineraries", $Oid);
             });
 

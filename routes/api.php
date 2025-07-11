@@ -35,7 +35,7 @@ Route::prefix('/packages')->group(function () {
     Route::get('/list', [PackageController::class, 'list']);
     Route::get('/{Oid}', [PackageController::class, 'show']);
     
-    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
+    Route::middleware(['auth:api', 'role:admin|owner', 'refresh_token'])->group(function () {
         Route::post('/save/{Oid?}', [PackageController::class, 'save']);
         Route::delete('{Oid}', [PackageController::class, 'delete']);
         
@@ -80,7 +80,7 @@ Route::prefix('/travel-transaction')->group(function () {
     Route::middleware(['auth:api'])->group(function () {
         Route::get('/list', [TravelTransactionController::class, 'userTravelTransactions']);
     });
-    Route::middleware(['auth:api', 'role:admin', 'refresh_token'])->group(function () {
+    Route::middleware(['auth:api', 'role:admin|owner', 'refresh_token'])->group(function () {
         Route::prefix('/admin')->group(function () {
             Route::get('/sales-overview', [TravelTransactionController::class, 'salesOverview']);
             Route::get('/weekly-earnings', [TravelTransactionController::class, 'weeklyStats']);

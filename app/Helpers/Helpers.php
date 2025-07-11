@@ -31,11 +31,14 @@ if (!function_exists('paymentProcess')) {
             //         'expires_at' => Carbon::now()->addDay()->toIso8601String(),
             //     ]);
 
-            if (isset($request) && $request->has('Price')) $amount = $request->Price;
-            else {
+            if (isset($request) && $request->has('Price')) {
+                $amount = $request->Price;
+            } else {
                 $totalPax = $data->details[0] ? $data->details[0]->TotalPax : 1;
                 $amount =  $data->PackagesObj ? $data->PackagesObj->Price * $totalPax : 0;
-                if ($data->details[0]->Itineraries) $amount += $data->details[0]->Price;
+                if ($data->details[0]->Itineraries) {
+                    $amount += $data->details[0]->Price;
+                }
             }
 
             $response = Http::withHeaders([
@@ -66,7 +69,9 @@ if (!function_exists('paymentProcess')) {
                 ]);
 
                 $responseData = $response->json();
-            if (isset($responseData['error_code'])) throw new \Exception("Xendit API error: " . $responseData['error_code']);
+            if (isset($responseData['error_code'])) {
+                throw new \Exception("Xendit API error: " . $responseData['error_code']);
+            }
 
             DB::transaction(function () use ($responseData, $type, &$data) {
                 $ExpiresAt = Carbon::parse($responseData['expiry_date'])->format('Y-m-d H:i:s');

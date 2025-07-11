@@ -10,7 +10,9 @@ use App\Models\TravelTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+
 use function Laravel\Prompts\error;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -313,7 +315,7 @@ class TravelTransactionController extends Controller
                 ->whereBetween('CreatedAt', [$startOfWeek, $endOfWeek])
                 ->sum('Price');
 
-            
+
             $unpaidTransactionIds = DB::table('travel_transaction_details')
                 ->whereNotIn('Status', $paidStatuses)
                 ->pluck('TravelTransaction');
@@ -367,5 +369,4 @@ class TravelTransactionController extends Controller
             ], 500);
         }
     }
-
 }

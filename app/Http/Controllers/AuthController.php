@@ -78,9 +78,13 @@ class AuthController extends Controller
             ->first();
 
 
-        if (!$user) return response()->json(['error' => 'Unauthorized'], 401);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        if (!Hash::check($password, $user->password)) return response()->json(['error' => 'Wrong Password'], 404);
+        if (!Hash::check($password, $user->password)) {
+            return response()->json(['error' => 'Wrong Password'], 404);
+        }
 
         $token = JWTAuth::fromUser($user);
 

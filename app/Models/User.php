@@ -13,7 +13,9 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory;
+    use Notifiable;
+    use HasRoles;
 
     protected $primaryKey = 'user_id';
 
@@ -70,7 +72,9 @@ class User extends Authenticatable implements JWTSubject
     public function hasAnyRole($setRole, $userRole)
     {
         $role = Role::where('id', $userRole)->first();
-        if ($setRole != $role->name) return true;
+        if ($setRole != $role->name) {
+            return true;
+        }
         return false;
     }
 

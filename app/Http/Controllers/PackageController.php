@@ -13,6 +13,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 class PackageController extends Controller
 {
     use ValidatesRequests;
+
     private $crudController;
 
     public function __construct()
@@ -118,10 +119,22 @@ class PackageController extends Controller
         }
     }
 
-    public function favorites(Request $request) { return $this->getFilteredPackages($request); }
-    public function seasonal(Request $request) { return $this->getFilteredPackages($request); }
-    public function custom(Request $request) { return $this->getFilteredPackages($request); }
-    public function mustsee(Request $request) { return $this->getFilteredPackages($request); }
+    public function favorites(Request $request)
+    {
+        return $this->getFilteredPackages($request);
+    }
+    public function seasonal(Request $request)
+    {
+        return $this->getFilteredPackages($request);
+    }
+    public function custom(Request $request)
+    {
+        return $this->getFilteredPackages($request);
+    }
+    public function mustsee(Request $request)
+    {
+        return $this->getFilteredPackages($request);
+    }
 
     public function show(Request $request, $Oid)
     {

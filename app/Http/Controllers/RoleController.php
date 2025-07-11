@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-
-    public function checkPermission(Request $request) {
-        
+    public function checkPermission(Request $request)
+    {
     }
 }

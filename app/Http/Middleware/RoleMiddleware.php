@@ -13,8 +13,6 @@ class RoleMiddleware
         $authGuard = Auth::guard($guard);
         $user = $authGuard->user();
 
-        // dd($user);
-
         if (! $user) {
             return Response::json([
                 'success' => false,
@@ -31,15 +29,53 @@ class RoleMiddleware
             ], 500);
         }
 
-        if ($user->hasAnyRole($role, $user->role)) {
+        // Parse roles - handle comma-separated or pipe-separated roles
+        $allowedRoles = $this->parseRoles($role);
+
+        // Check if user has any of the required roles
+        // Try to determine what the second parameter should be
+        if (!$this->checkUserRoles($user, $allowedRoles)) {
             return Response::json([
                 'success' => false,
                 'message' => 'Forbidden. Insufficient permissions.',
                 'error' => 'You do not have the required role to access this resource'
             ], 403);
-        };
+        }
 
         return $next($request);
+    }
+
+    /**
+     * Check if user has any of the required roles
+     */
+    protected function checkUserRoles($user, $allowedRoles)
+    {
+        // Get the user's role name
+        $userRole = $user->roleObj ? $user->roleObj->name : null;
+
+        // Check if user's role is in the allowed roles
+        return in_array($userRole, $allowedRoles);
+    }
+
+    /**
+     * Parse roles from string to array
+     */
+    protected function parseRoles($role)
+    {
+        if (is_array($role)) {
+            return $role;
+        }
+
+        // Handle both comma-separated and pipe-separated roles
+        if (strpos($role, ',') !== false) {
+            return array_map('trim', explode(',', $role));
+        }
+
+        if (strpos($role, '|') !== false) {
+            return array_map('trim', explode('|', $role));
+        }
+
+        return [$role];
     }
 
     /**

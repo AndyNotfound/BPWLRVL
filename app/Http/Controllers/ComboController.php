@@ -11,6 +11,7 @@ use App\Models\TravelTransaction;
 use App\Models\TravelTransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+
 use function Laravel\Prompts\error;
 use function PHPUnit\Framework\throwException;
 
@@ -25,7 +26,8 @@ class ComboController extends Controller
 {
     use ValidatesRequests;
 
-    public function itineraries(Request $request) {
+    public function itineraries(Request $request)
+    {
         try {
             $data = Itineraries::select('Oid', 'Name')->get();
 

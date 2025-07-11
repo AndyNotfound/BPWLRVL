@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
-
     private $crudController;
 
     public function __construct()
