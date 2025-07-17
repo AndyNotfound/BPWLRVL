@@ -108,6 +108,7 @@ Route::middleware(['active'])->group(function () {
         Route::get('/list', [ReviewController::class, 'listGlobal']);
         Route::get('/list/{Package}', [ReviewController::class, 'list']);
         Route::middleware(['auth:api', 'refresh_token'])->group(function () {
+            Route::get('/can-review/{packageId}', [ReviewController::class, 'canReview']);
             Route::post('/save/{Oid?}', [ReviewController::class, 'save']);
             Route::get('/{Oid}', [ReviewController::class, 'show']);
             Route::middleware(['role:admin', 'refresh_token'])->group(function () {});

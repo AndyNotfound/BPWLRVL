@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\review;
+use App\Models\TravelTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -126,9 +127,48 @@ class ReviewController extends Controller
         }
     }
 
+    public function canReview(Request $request, $packageId)
+    {
+        try {
+            $userId = Auth::user()['user_id'];
+
+            // Check if the user has booked this package
+            $hasBooked = TravelTransaction::where('Packages', $packageId)
+                ->where('CreateBy', $userId)
+                ->exists();
+
+            return response()->json([
+                'success' => true,
+                'canReview' => $hasBooked,
+                'message' => $hasBooked ? 'User can review this package' : 'User must book this package before reviewing',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check review eligibility.',
+            ], 500);
+        }
+    }
+
     public function save(Request $request, $Oid = null)
     {
         try {
+            // Get the package ID from the request
+            $packageId = $request->input('Packages');
+            $userId = Auth::user()['user_id'];
+
+            // Check if the user has booked this package
+            $hasBooked = TravelTransaction::where('Packages', $packageId)
+                ->where('CreateBy', $userId)
+                ->exists();
+
+            if (! $hasBooked) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only review packages that you have booked.',
+                ], 403);
+            }
+
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
@@ -143,7 +183,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to saved Review.',
+                'message' => 'Failed to save Review.',
             ], 500);
         }
     }
