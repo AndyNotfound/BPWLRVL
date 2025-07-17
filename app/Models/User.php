@@ -5,17 +5,17 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Notifications\Notifiable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
-    use Notifiable;
+
     use HasRoles;
+    use Notifiable;
 
     protected $primaryKey = 'user_id';
 
@@ -24,7 +24,6 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var list<string>
      */
-
     protected $fillable = [
         'email',
         'phone_number',
@@ -75,6 +74,7 @@ class User extends Authenticatable implements JWTSubject
         if ($setRole != $role->name) {
             return true;
         }
+
         return false;
     }
 

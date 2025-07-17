@@ -2,45 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\BookingConfirmationMail;
 use App\Mail\SendMail;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class globalCRUDController extends Controller
 {
     public function save($payload, $tableName, $Oid = null, $request = null)
     {
-        $modelClass = "\\App\\Models\\" . $tableName;
+        $modelClass = '\\App\\Models\\'.$tableName;
         if (class_exists($modelClass)) {
             if ($Oid) {
                 $data = $modelClass::where('Oid', $Oid)->first();
             } else {
-                $data = new $modelClass();
+                $data = new $modelClass;
             }
             foreach ($payload as $key => $req) {
-                if (str_contains($key, "Image")) {
+                if (str_contains($key, 'Image')) {
                     $image = $request->file($key);
-                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $imageName = time().'_'.$image->getClientOriginalName();
                     $image->move(public_path('images'), $imageName);
-                    $url = url('images/' . $imageName);
+                    $url = url('images/'.$imageName);
                     $data->$key = $url;
                 } else {
                     $data->$key = $req;
                 }
             }
-            if (!$Oid) {
+            if (! $Oid) {
                 $data->Oid = (string) Str::uuid();
             }
             try {
                 $data->save();
             } catch (\Exception $e) {
                 return response()->json([
-                    $e->getMessage()
+                    $e->getMessage(),
                 ], 500);
             }
             $data->save();
+
             return $data;
         } else {
             throw new \Exception("Model doesn't exist.");
@@ -54,7 +53,7 @@ class globalCRUDController extends Controller
             Mail::to($emailData[0]['details'][0]['Email'])->send(new SendMail($emailData, $bladeName, "Booking $type from Batam Pesona Wisata"));
         } catch (\Exception $e) {
             return response()->json([
-                $e->getMessage()
+                $e->getMessage(),
             ], 500);
         }
     }

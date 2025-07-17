@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\review;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReviewController extends Controller
 {
@@ -13,7 +13,7 @@ class ReviewController extends Controller
 
     public function __construct()
     {
-        $this->crudController = new globalCRUDController();
+        $this->crudController = new globalCRUDController;
     }
 
     public function index(Request $request)
@@ -28,7 +28,7 @@ class ReviewController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -68,10 +68,11 @@ class ReviewController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $reviews
+                'data' => $reviews,
             ]);
         } catch (\Exception $e) {
             dd($e);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve Reviews.',
@@ -83,7 +84,7 @@ class ReviewController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $isSelectAll = $perPage == "-1";
+            $isSelectAll = $perPage == '-1';
 
             $query = review::where('Packages', $package)
                 ->leftJoin('packages', 'reviews.Packages', '=', 'packages.Oid')
@@ -95,7 +96,7 @@ class ReviewController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $collection
+                'data' => $collection,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -115,7 +116,7 @@ class ReviewController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -131,13 +132,13 @@ class ReviewController extends Controller
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
-                $data = $this->crudController->save($payload, "review", $Oid);
+                $data = $this->crudController->save($payload, 'review', $Oid);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => "Review is successfully saved",
-                'data' => $data
+                'message' => 'Review is successfully saved',
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([

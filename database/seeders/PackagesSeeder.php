@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Packages;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class PackagesSeeder extends Seeder
 {
@@ -226,9 +225,9 @@ class PackagesSeeder extends Seeder
                 'Title' => $data['Title'],
                 'Description' => $data['Description'],
                 'Location' => $data['Location'],
-                'HeadImage' => 'head_image_' . $i . '.jpg',
-                'SubImage1' => 'sub_image1_' . $i . '.jpg',
-                'SubImage2' => 'sub_image2_' . $i . '.jpg',
+                'HeadImage' => 'head_image_'.$i.'.jpg',
+                'SubImage1' => 'sub_image1_'.$i.'.jpg',
+                'SubImage2' => 'sub_image2_'.$i.'.jpg',
                 'ValidDateStart' => now()->addDays($i),
                 'ValidDateEnd' => now()->addDays($i + 7),
                 'Price' => rand(1, 3) * 1000000,

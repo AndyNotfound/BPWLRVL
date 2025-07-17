@@ -3,21 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Itineraries;
-use App\Models\Role;
-use App\Models\User;
-use App\Models\Packages;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
-
-use function Laravel\Prompts\error;
-
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ItinerariesController extends Controller
 {
@@ -27,21 +17,21 @@ class ItinerariesController extends Controller
 
     public function __construct()
     {
-        $this->crudController = new globalCRUDController();
+        $this->crudController = new globalCRUDController;
     }
 
     public function list(Request $request)
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $isSelectAll = $perPage == "-1";
+            $isSelectAll = $perPage == '-1';
 
             $result = $isSelectAll ? Itineraries::get() : Itineraries::paginate($perPage);
             $collection = $isSelectAll ? $result : $result->getCollection();
 
             return response()->json([
                 'success' => true,
-                'data' => $collection
+                'data' => $collection,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -58,7 +48,7 @@ class ItinerariesController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $Itineraries
+                'data' => $Itineraries,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -75,16 +65,16 @@ class ItinerariesController extends Controller
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
                 $payload['Role'] = Auth::user()['role'];
-                if (!isset($payload['Code'])) {
-                    $payload['Code'] = "IT - " . Str::random(8);
+                if (! isset($payload['Code'])) {
+                    $payload['Code'] = 'IT - '.Str::random(8);
                 }
-                $data = $this->crudController->save($payload, "Itineraries", $Oid);
+                $data = $this->crudController->save($payload, 'Itineraries', $Oid);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => "Itineraries is successfully saved",
-                'data' => $data
+                'message' => 'Itineraries is successfully saved',
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -104,7 +94,7 @@ class ItinerariesController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Itinerary is successfully deleted"
+                'message' => 'Itinerary is successfully deleted',
             ]);
         } catch (\Exception $e) {
             return response()->json([

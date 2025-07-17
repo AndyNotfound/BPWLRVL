@@ -14,10 +14,12 @@ class SendMail extends Mailable
     use SerializesModels;
 
     public string $subjectLine;
+
     public string $bladeView;
+
     public array $emailData;
 
-    public function __construct(array $emailData, string $bladeView, string $subjectLine = "Email Send from Batam Pesona Wisata")
+    public function __construct(array $emailData, string $bladeView, string $subjectLine = 'Email Send from Batam Pesona Wisata')
     {
         $this->emailData = $emailData;
         $this->bladeView = $bladeView;

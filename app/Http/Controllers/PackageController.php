@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Packages;
 use App\Models\Itineraries;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Packages;
+use App\Models\User;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PackageController extends Controller
 {
@@ -18,15 +18,20 @@ class PackageController extends Controller
 
     public function __construct()
     {
-        $this->crudController = new globalCRUDController();
+        $this->crudController = new globalCRUDController;
     }
 
-    private function getFilteredPackages(Request $request)
+    private function getFilteredPackages(Request $request, ?callable $filterCallback = null)
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $query = Packages::query();
 
-            $packages = Packages::inRandomOrder()->paginate($perPage);
+            if ($filterCallback) {
+                $filterCallback($query);
+            }
+
+            $packages = $query->inRandomOrder()->paginate($perPage);
             $packageIds = $packages->pluck('Oid');
 
             $popularCounts = DB::table('travel_transactions')
@@ -39,18 +44,19 @@ class PackageController extends Controller
 
             $packages->getCollection()->transform(function ($package) use ($popularCounts, $threshold) {
                 $package->isPopular = ($popularCounts[$package->Oid] ?? 0) >= $threshold;
+
                 return $package;
             });
 
             return response()->json([
                 'success' => true,
-                'data' => $packages
+                'data' => $packages,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve packages.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -85,31 +91,31 @@ class PackageController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $isSelectAll = $perPage == "-1";
+            $isSelectAll = $perPage == '-1';
             $search = $request->input('search');
 
             $query = Packages::query();
-            if (!empty($search)) {
+            if (! empty($search)) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('Name', 'like', '%' . $search . '%')
-                        ->orWhere('Location', 'like', '%' . $search . '%');
+                    $q->where('Name', 'like', '%'.$search.'%')
+                        ->orWhere('Location', 'like', '%'.$search.'%');
                 });
             }
 
             $result = $isSelectAll ? $query->get() : $query->paginate($perPage);
             $collection = $isSelectAll ? $result : $result->getCollection();
 
-            // ✅ Parse itineraries string jadi array
             $collection->transform(function ($pkg) {
                 $pkg->Itineraries = $pkg->Itineraries
                     ? array_map('trim', explode(',', $pkg->Itineraries))
                     : [];
+
                 return $pkg;
             });
 
             return response()->json([
                 'success' => true,
-                'data' => $collection
+                'data' => $collection,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -123,14 +129,19 @@ class PackageController extends Controller
     {
         return $this->getFilteredPackages($request);
     }
+
     public function seasonal(Request $request)
     {
         return $this->getFilteredPackages($request);
     }
+
     public function custom(Request $request)
     {
-        return $this->getFilteredPackages($request);
+        return $this->getFilteredPackages($request, function ($query) {
+            $query->where('isCustomItineraries', true);
+        });
     }
+
     public function mustsee(Request $request)
     {
         return $this->getFilteredPackages($request);
@@ -143,9 +154,9 @@ class PackageController extends Controller
 
             $arrayItineraries = [];
 
-            if (!empty($packages->Itineraries)) {
-                foreach (explode(", ", $packages->Itineraries) as $itineraryOid) {
-                    $arrayItineraries[] = Itineraries::where("Oid", trim($itineraryOid))->first();
+            if (! empty($packages->Itineraries)) {
+                foreach (explode(', ', $packages->Itineraries) as $itineraryOid) {
+                    $arrayItineraries[] = Itineraries::where('Oid', trim($itineraryOid))->first();
                 }
                 if ($arrayItineraries) {
                     $packages->Itineraries = $arrayItineraries;
@@ -154,7 +165,7 @@ class PackageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $packages
+                'data' => $packages,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -178,7 +189,7 @@ class PackageController extends Controller
                         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                             $payload['Itineraries'] = implode(', ', $decoded);
                         } else {
-                            $cleaned = trim($payload['Itineraries'], "[]\"");
+                            $cleaned = trim($payload['Itineraries'], '[]"');
                             $payload['Itineraries'] = implode(', ', array_map('trim', explode(',', $cleaned)));
                         }
                     } elseif (is_array($payload['Itineraries'])) {
@@ -186,19 +197,19 @@ class PackageController extends Controller
                     }
                 }
 
-                $data = $this->crudController->save($payload, "Packages", $Oid, $request);
+                $data = $this->crudController->save($payload, 'Packages', $Oid, $request);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => "Package is successfully saved",
-                'data' => $data
+                'message' => 'Package is successfully saved',
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -213,7 +224,7 @@ class PackageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Package is successfully deleted"
+                'message' => 'Package is successfully deleted',
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -234,8 +245,8 @@ class PackageController extends Controller
                 'stats' => [
                     'userCount' => $userCount,
                     'itinerariesCount' => $itinerariesCount,
-                    'packageCount'  => $packageCount,
-                ]
+                    'packageCount' => $packageCount,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -276,7 +287,7 @@ class PackageController extends Controller
 
                 $results[] = [
                     'title' => $pkg->Title ?? $pkg->Name,
-                    'bookings' => $views >= 1000 ? number_format($views / 1000, 1) . 'k' : (string) $views,
+                    'bookings' => $views >= 1000 ? number_format($views / 1000, 1).'k' : (string) $views,
                     'icon' => $icons[$index % count($icons)],
                     'color' => $colors[$index % count($colors)],
                 ];
@@ -287,7 +298,7 @@ class PackageController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching top packages',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

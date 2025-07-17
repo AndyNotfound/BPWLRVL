@@ -2,27 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Itineraries;
-use App\Models\Role;
-use App\Models\User;
 use App\Models\Packages;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Models\TravelTransaction;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
-
-use function Laravel\Prompts\error;
-
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Models\TravelTransactionDetail;
-use Tymon\JWTAuth\Exceptions\JWTException;
-
-use function PHPUnit\Framework\throwException;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -32,7 +19,7 @@ class CartController extends Controller
 
     public function __construct()
     {
-        $this->crudController = new globalCRUDController();
+        $this->crudController = new globalCRUDController;
     }
 
     public function create(Request $request)
@@ -42,7 +29,7 @@ class CartController extends Controller
             DB::transaction(function () use ($request, &$data) {
                 $user = Auth::user();
                 $user_id = $user->user_id ?? null;
-                if (!isset($request->Packages)) {
+                if (! isset($request->Packages)) {
                     throw new \Exception('Packages field is required.');
                 }
                 $package = Packages::findOrFail($request->Packages);
@@ -54,11 +41,11 @@ class CartController extends Controller
                 */
 
                 $data = TravelTransaction::create([
-                    'Oid'      => (string) Str::uuid(),
+                    'Oid' => (string) Str::uuid(),
                     'CreateBy' => $user_id,
                     'Packages' => $request->Packages,
-                    'Code'     => 'PKG - ' . strtoupper(Str::random(7)),
-                    'Price'    => !$request->isCustomItineraries
+                    'Code' => 'PKG - '.strtoupper(Str::random(7)),
+                    'Price' => ! $request->isCustomItineraries
                         ? ($request->totalPax ?? 1) * $package->Price
                         : 0,
                 ]);
@@ -69,19 +56,19 @@ class CartController extends Controller
                 }
 
                 $trvTransationDetail = TravelTransactionDetail::create([
-                    "Oid" => (string) Str::uuid(),
-                    "CreateBy" => $user_id,
-                    "TravelTransaction" => $data->Oid,
-                    "TotalPax" => $request->totalPax ?? 1,
-                    "Name" => $request->firstName . " " . $request->lastName,
-                    "Email" => $request->Email,
-                    "Status" => "Entry",
-                    "PhoneNumber" => $request->PhoneNumber,
-                    "EnterDate" => $request->EnterDate,
-                    "ExitDate" => $request->ExitDate,
-                    "isCustomItineraries" => $request->isCustomItineraries ?? 0,
-                    "Description" => "The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price",
-                    "Itineraries" => isset($itinerary) ? $itinerary : null
+                    'Oid' => (string) Str::uuid(),
+                    'CreateBy' => $user_id,
+                    'TravelTransaction' => $data->Oid,
+                    'TotalPax' => $request->totalPax ?? 1,
+                    'Name' => $request->firstName.' '.$request->lastName,
+                    'Email' => $request->Email,
+                    'Status' => 'Entry',
+                    'PhoneNumber' => $request->PhoneNumber,
+                    'EnterDate' => $request->EnterDate,
+                    'ExitDate' => $request->ExitDate,
+                    'isCustomItineraries' => $request->isCustomItineraries ?? 0,
+                    'Description' => 'The Price Is Shown Is Not Fix, Please Contact Our Admin To Discuss The Final Price',
+                    'Itineraries' => isset($itinerary) ? $itinerary : null,
                 ]);
 
                 $package->save();
@@ -89,18 +76,19 @@ class CartController extends Controller
                 $data->Detail = $trvTransationDetail;
             });
 
-            if (!$request->isCustomItineraries) {
+            if (! $request->isCustomItineraries) {
                 $this->crudController->sendEmail($data, 'emails.bookingInvoice', 'Invoice');
             }
+
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create cart.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -110,29 +98,30 @@ class CartController extends Controller
         try {
             DB::transaction(function () use ($request, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->where('Code', $request->external_id)->first();
-                if (!$data) {
+                if (! $data) {
                     throw new \Exception("Travel Transaction doesn't exist.");
                 }
                 $data->Price = $request->amount;
                 $trvTransationDetail = $data->details[0];
                 $trvTransationDetail->Status = $request->status;
 
-                if (strtolower($request->status) == "paid") {
+                if (strtolower($request->status) == 'paid') {
                     $this->crudController->sendEmail($data, 'emails.bookingConfirmation', 'Confirmation');
                 }
 
                 $trvTransationDetail->save();
                 $data->save();
             });
+
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve packages.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -142,11 +131,11 @@ class CartController extends Controller
         try {
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $data = TravelTransaction::with(['details', 'packages'])->findOrFail($Oid);
-                $qrCode = paymentProcess($data, "QR", $request);
+                $qrCode = paymentProcess($data, 'QR', $request);
                 // dd($qrCode, $data);
                 $data->Price = $qrCode['amount'];
                 $data->save();
-                if (!is_array($qrCode) && $qrCode->getData(true)['success'] == false) {
+                if (! is_array($qrCode) && $qrCode->getData(true)['success'] == false) {
                     throw new \Exception($qrCode->getData()->error);
                 }
                 $data->PaymentLink = $qrCode['invoice_url'];
@@ -157,7 +146,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Payment process failed',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -172,7 +161,7 @@ class CartController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Package is successfully deleted"
+                'message' => 'Package is successfully deleted',
             ]);
         } catch (\Exception $e) {
             return response()->json([

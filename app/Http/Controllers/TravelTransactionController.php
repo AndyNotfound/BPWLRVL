@@ -3,22 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Itineraries;
-use App\Models\Role;
-use App\Models\User;
 use App\Models\Packages;
 use App\Models\TravelTransaction;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
-
-use function Laravel\Prompts\error;
-
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TravelTransactionController extends Controller
 {
@@ -28,7 +20,7 @@ class TravelTransactionController extends Controller
 
     public function __construct()
     {
-        $this->crudController = new globalCRUDController();
+        $this->crudController = new globalCRUDController;
     }
 
     /* Different from requirement
@@ -55,7 +47,7 @@ class TravelTransactionController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $isSelectAll = $perPage == "-1";
+            $isSelectAll = $perPage == '-1';
 
             $query = TravelTransaction::with(['package', 'details']);
 
@@ -100,7 +92,6 @@ class TravelTransactionController extends Controller
         }
     }
 
-
     public function show(Request $request, $Oid)
     {
         try {
@@ -110,7 +101,7 @@ class TravelTransactionController extends Controller
                 $itineraryIds = explode(', ', $travelTransaction->details[0]->Itineraries ?? '');
 
                 $travelTransaction->Itineraries = collect($itineraryIds)
-                    ->map(fn($id) => Itineraries::findOrFail($id))
+                    ->map(fn ($id) => Itineraries::findOrFail($id))
                     ->all();
             }
 
@@ -129,12 +120,13 @@ class TravelTransactionController extends Controller
             DB::transaction(function () use ($Oid, $request, &$data) {
                 $payload = $request->all();
                 $payload['CreateBy'] = Auth::user()['user_id'];
-                $data = $this->crudController->save($payload, "TravelTransaction", $Oid);
+                $data = $this->crudController->save($payload, 'TravelTransaction', $Oid);
             });
+
             return response()->json([
                 'success' => true,
-                'message' => "Travel Transaction is successfully saved",
-                'data' => $data
+                'message' => 'Travel Transaction is successfully saved',
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -160,7 +152,7 @@ class TravelTransactionController extends Controller
                     'totalClients' => $totalClients,
                     'totalTransactions' => $totalTransactions,
                     'totalPaidTransactions' => $totalPaidTransactions,
-                    'totalUnpaidTransactions' => $totalUnpaidTransactions
+                    'totalUnpaidTransactions' => $totalUnpaidTransactions,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -177,7 +169,7 @@ class TravelTransactionController extends Controller
         try {
             $user = Auth::user();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not authenticated.',
@@ -190,31 +182,54 @@ class TravelTransactionController extends Controller
 
             $allItineraryOids = [];
 
+            // Helper function to parse itineraries
+            $parseItineraries = function ($itineraries) {
+                if (empty($itineraries)) {
+                    return [];
+                }
+
+                // Try to decode as JSON first
+                $decoded = json_decode($itineraries, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    // Valid JSON - handle both array and object cases
+                    if (is_array($decoded)) {
+                        return array_values($decoded); // Ensure numeric keys
+                    } elseif (is_object($decoded)) {
+                        return array_values((array) $decoded); // Convert object to array
+                    }
+
+                    return [$decoded]; // Single value
+                } else {
+                    // Not valid JSON, treat as comma-separated string
+                    return array_map('trim', explode(',', $itineraries));
+                }
+            };
+
+            // Collect all itinerary OIDs
             foreach ($data as $transaction) {
                 foreach ($transaction->details as $detail) {
                     if ($detail->Itineraries) {
-                        $oids = json_decode($detail->Itineraries, true);
-                        if (is_array($oids)) {
-                            $allItineraryOids = array_merge($allItineraryOids, $oids);
-                        }
+                        $oids = $parseItineraries($detail->Itineraries);
+                        $allItineraryOids = array_merge($allItineraryOids, $oids);
                     }
                 }
             }
 
+            // Get itinerary names mapping
             $itineraryMap = DB::table('itineraries')
                 ->whereIn('Oid', array_unique($allItineraryOids))
                 ->pluck('Name', 'Oid');
 
+            // Map itinerary names to each detail
             foreach ($data as $transaction) {
                 foreach ($transaction->details as $detail) {
                     $detail->ItineraryNames = [];
                     if ($detail->Itineraries) {
-                        $oids = json_decode($detail->Itineraries, true);
-                        if (is_array($oids)) {
-                            $detail->ItineraryNames = collect($oids)->map(function ($oid) use ($itineraryMap) {
-                                return $itineraryMap[$oid] ?? null;
-                            })->filter()->values();
-                        }
+                        $oids = $parseItineraries($detail->Itineraries);
+                        $detail->ItineraryNames = collect($oids)->map(function ($oid) use ($itineraryMap) {
+                            return $itineraryMap[$oid] ?? null;
+                        })->filter()->values();
                     }
                 }
             }
@@ -224,11 +239,10 @@ class TravelTransactionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve user travel transactions.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
-
 
     public function salesOverview(Request $request)
     {
@@ -264,26 +278,26 @@ class TravelTransactionController extends Controller
             $data = [
                 [
                     'title' => 'Sales',
-                    'stats' => 'IDR ' . number_format($sales, 0, ',', '.'),
-                    'icon'  => 'tabler-currency-dollar',
+                    'stats' => 'IDR '.number_format($sales, 0, ',', '.'),
+                    'icon' => 'tabler-currency-dollar',
                     'color' => 'success',
                 ],
                 [
                     'title' => 'Bookings',
                     'stats' => number_format($bookings, 0, ',', '.'),
-                    'icon'  => 'tabler-chart-pie-2',
+                    'icon' => 'tabler-chart-pie-2',
                     'color' => 'primary',
                 ],
                 [
                     'title' => 'Travelers',
                     'stats' => number_format($travelers, 0, ',', '.'),
-                    'icon'  => 'tabler-users',
+                    'icon' => 'tabler-users',
                     'color' => 'info',
                 ],
                 [
                     'title' => 'Travel Packages',
                     'stats' => number_format($travelPackages, 0, ',', '.'),
-                    'icon'  => 'tabler-shopping-cart',
+                    'icon' => 'tabler-shopping-cart',
                     'color' => 'error',
                 ],
             ];
@@ -315,7 +329,6 @@ class TravelTransactionController extends Controller
                 ->whereBetween('CreatedAt', [$startOfWeek, $endOfWeek])
                 ->sum('Price');
 
-
             $unpaidTransactionIds = DB::table('travel_transaction_details')
                 ->whereNotIn('Status', $paidStatuses)
                 ->pluck('TravelTransaction');
@@ -342,15 +355,15 @@ class TravelTransactionController extends Controller
                     'avatarColor' => 'success',
                     'title' => 'Net Sales',
                     'subtitle' => 'Paid Travel Transactions',
-                    'earnings' => 'IDR ' . number_format($netSales, 0, ',', '.'),
+                    'earnings' => 'IDR '.number_format($netSales, 0, ',', '.'),
                 ],
                 [
                     'avatarIcon' => 'tabler-credit-card',
                     'avatarColor' => 'secondary',
                     'title' => 'Reserved Sales',
                     'subtitle' => 'Unpaid Travel Transactions',
-                    'earnings' => 'IDR ' . number_format($reservedSales, 0, ',', '.'),
-                ]
+                    'earnings' => 'IDR '.number_format($reservedSales, 0, ',', '.'),
+                ],
             ];
 
             return response()->json([
@@ -358,14 +371,14 @@ class TravelTransactionController extends Controller
                 'series' => [
                     [
                         'data' => $chartSeries,
-                    ]
-                ]
+                    ],
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch weekly transaction stats.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

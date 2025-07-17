@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class TravelTransactionDetail extends Model
 {
     use HasFactory;
 
     protected $table = 'travel_transaction_details';
+
     protected $primaryKey = 'Oid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -30,7 +34,7 @@ class TravelTransactionDetail extends Model
         'EnterDate',
         'ExitDate',
         'isCustomItineraries',
-        'Itineraries'
+        'Itineraries',
     ];
 
     public function creator()

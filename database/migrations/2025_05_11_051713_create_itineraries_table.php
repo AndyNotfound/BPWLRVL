@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('CreateBy')->references('user_id')->on('users')->onDelete('cascade');
 
             $table->timestamp('CreatedAt')->useCurrent();
-            
+
             $table->unsignedBigInteger('Role');
             $table->foreign('Role')->references('id')->on('roles')->onDelete('cascade');
 

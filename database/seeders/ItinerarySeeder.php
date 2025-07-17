@@ -3,10 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Itineraries;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class ItinerarySeeder extends Seeder
 {
@@ -23,8 +22,8 @@ class ItinerarySeeder extends Seeder
                 'CreateBy' => 1,
                 'CreatedAt' => Carbon::now(),
                 'Role' => 1,
-                'Code' => 'ITINERARY001' . $i,
-                'Name' => 'Sample Itinerary' . $i,
+                'Code' => 'ITINERARY001'.$i,
+                'Name' => 'Sample Itinerary'.$i,
                 // 'Price' => rand(100, 999) * 1000,
             ]);
         }

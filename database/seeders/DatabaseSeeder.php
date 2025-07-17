@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'User',
             'is_active' => true,
             'password' => bcrypt('123'),
-            'role' => 1
+            'role' => 1,
         ]);
 
         User::Create([
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'User',
             'is_active' => true,
             'password' => bcrypt('123'),
-            'role' => 3
+            'role' => 3,
         ]);
     }
 }

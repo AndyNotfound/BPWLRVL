@@ -2,20 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use Illuminate\Http\Request;
 use App\Models\User;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     use ValidatesRequests;
+
+    private function determineRole(Request $request)
+    {
+        // Method 1: Check payload for origin
+        if ($request->has('origin')) {
+            $origin = $request->input('origin');
+            switch ($origin) {
+                case 'admin':
+                    return 1;
+                case 'client':
+                    return 3;
+                default:
+                    return 3;
+            }
+        }
+
+        // Method 2: Check Origin header
+        $origin = $request->header('Origin');
+
+        if ($origin) {
+            if (strpos($origin, 'admin.batampesonawisata.com') !== false) {
+                return 1;
+            } elseif (strpos($origin, 'client.batampesonawisata.com') !== false) {
+                return 3;
+            }
+        }
+
+        // Method 3: Check Referer header as fallback
+        $referer = $request->header('Referer');
+        if ($referer) {
+            if (strpos($referer, 'admin.batampesonawisata.com') !== false) {
+                return 1;
+            } elseif (strpos($referer, 'client.batampesonawisata.com') !== false) {
+                return 3;
+            }
+        }
+
+        return 3;
+    }
 
     public function register(Request $request)
     {
@@ -26,6 +63,7 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
+            'origin' => 'nullable|string|in:admin,client', // Optional origin validation
         ], [
             'email.unique' => 'The email has already been taken.',
             'phone_number.unique' => 'The phone number has already been registered.',
@@ -36,13 +74,15 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         DB::beginTransaction();
 
         try {
+            $role = $this->determineRole($request);
+
             $user = User::create([
                 'email' => $request->email,
                 'phone_number' => $request->phone_number,
@@ -50,14 +90,19 @@ class AuthController extends Controller
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'password' => Hash::make($request->password),
-                'role' => 3
+                'role' => $role,
             ]);
 
             DB::commit();
 
-            return response()->json(['message' => 'User registered successfully!', 'user' => $user], 201);
+            return response()->json([
+                'message' => 'User registered successfully!',
+                'user' => $user,
+                'assigned_role' => $role,
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json(['error' => 'Registration failed. Please try again.'], 500);
         }
     }
@@ -77,13 +122,17 @@ class AuthController extends Controller
             ->orWhere('phone_number', $loginField)
             ->first();
 
-
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        if (!Hash::check($password, $user->password)) {
+        if (! Hash::check($password, $user->password)) {
             return response()->json(['error' => 'Wrong Password'], 404);
+        }
+
+        // Check if account is active
+        if (! $user->is_active) {
+            return response()->json(['error' => 'Account deactivated. Please contact support.'], 403);
         }
 
         $token = JWTAuth::fromUser($user);
@@ -99,7 +148,7 @@ class AuthController extends Controller
                 'last_name' => $user->last_name,
                 'is_active' => $user->is_active,
                 'role' => $user->role,
-                'roles' => $user->roleObj
+                'roles' => $user->roleObj,
             ],
         ]);
     }
@@ -107,11 +156,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json(
-            [
-                'message' => 'Successfully logged out'
-            ]
-        );
+
+        return response()->json([
+            'message' => 'Successfully logged out',
+        ]);
     }
 
     public function refresh(Request $request)
@@ -120,34 +168,26 @@ class AuthController extends Controller
             $newToken = JWTAuth::refresh(JWTAuth::getToken());
             $user = JWTAuth::user();
 
-            if (!$user) {
-                return response()->json(
-                    [
-                        'error' => 'User not found'
-                    ],
-                    404
-                );
+            if (! $user) {
+                return response()->json([
+                    'error' => 'User not found',
+                ], 404);
             }
 
-            return response()->json(
-                [
-                    'token' => $newToken,
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'role' => $user->role,
-                        'roles' => $user->roleObj
-                    ]
-                ]
-            );
-        } catch (JWTException $e) {
-            return response()->json(
-                [
-                    'error' => 'Could not refresh token'
+            return response()->json([
+                'token' => $newToken,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'roles' => $user->roleObj,
                 ],
-                500
-            );
+            ]);
+        } catch (JWTException $e) {
+            return response()->json([
+                'error' => 'Could not refresh token',
+            ], 500);
         }
     }
 }

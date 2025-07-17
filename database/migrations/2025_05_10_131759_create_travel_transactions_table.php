@@ -33,4 +33,4 @@ class CreateTravelTransactionsTable extends Migration
     {
         Schema::dropIfExists('travel_transactions');
     }
-};
+}

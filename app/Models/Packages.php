@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Packages extends Model
 {
@@ -30,8 +30,9 @@ class Packages extends Model
         'ValidDateEnd',
         'Price',
         'MaxCapacity',
-        'Itineraries'
+        'Itineraries',
     ];
+
     public $timestamps = false;
 
     protected $casts = [

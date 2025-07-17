@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Itineraries extends Model
 {
     use HasFactory;
 
     protected $table = 'itineraries';
+
     protected $primaryKey = 'Oid';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -20,6 +24,6 @@ class Itineraries extends Model
         'CreateBy',
         'CreatedAt',
         'Code',
-        'Name'
+        'Name',
     ];
 }

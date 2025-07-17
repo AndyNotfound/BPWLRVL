@@ -17,7 +17,7 @@ class RoleMiddleware
             return Response::json([
                 'success' => false,
                 'message' => 'Unauthorized. Authentication required.',
-                'error' => 'You need to login first!'
+                'error' => 'You need to login first!',
             ], 401);
         }
 
@@ -25,7 +25,7 @@ class RoleMiddleware
             return Response::json([
                 'success' => false,
                 'message' => 'Server configuration error',
-                'error' => 'Method hasAnyRole does not exist on user model'
+                'error' => 'Method hasAnyRole does not exist on user model',
             ], 500);
         }
 
@@ -34,11 +34,11 @@ class RoleMiddleware
 
         // Check if user has any of the required roles
         // Try to determine what the second parameter should be
-        if (!$this->checkUserRoles($user, $allowedRoles)) {
+        if (! $this->checkUserRoles($user, $allowedRoles)) {
             return Response::json([
                 'success' => false,
                 'message' => 'Forbidden. Insufficient permissions.',
-                'error' => 'You do not have the required role to access this resource'
+                'error' => 'You do not have the required role to access this resource',
             ], 403);
         }
 
@@ -91,7 +91,7 @@ class RoleMiddleware
 
         $args = is_null($guard) ? $roleString : "$roleString,$guard";
 
-        return static::class . ':' . $args;
+        return static::class.':'.$args;
     }
 
     /**
@@ -107,7 +107,7 @@ class RoleMiddleware
         }
 
         if (is_array($role)) {
-            $role = array_map(fn($r) => $r instanceof \BackedEnum ? $r->value : $r, $role);
+            $role = array_map(fn ($r) => $r instanceof \BackedEnum ? $r->value : $r, $role);
 
             return implode('|', $role);
         }

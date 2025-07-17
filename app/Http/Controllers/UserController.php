@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -17,15 +17,16 @@ class UserController extends Controller
     {
         try {
             $data = User::findOrFail($Oid);
+
             return response()->json([
                 'success' => true,
-                'data' => $data
+                'data' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve user.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -34,7 +35,7 @@ class UserController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 1);
-            $isSelectAll = $perPage == "-1";
+            $isSelectAll = $perPage == '-1';
 
             // Paginate the users with their roles
             $query = User::with('roleObj');
@@ -61,17 +62,16 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $paginator
+                'data' => $paginator,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve users.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
-
 
     private function checkUniqueFields(Request $request, User $user, array $fields)
     {
@@ -82,7 +82,7 @@ class UserController extends Controller
                     ->exists();
 
                 if ($exists) {
-                    return response()->json(["error" => "The $field has already been taken."], 422)->throwResponse();
+                    return response()->json(['error' => "The $field has already been taken."], 422)->throwResponse();
                 }
             }
         }
@@ -124,6 +124,7 @@ class UserController extends Controller
     {
         $user = $request->user();
         $user->delete();
+
         return response()->json(['message' => 'User deleted successfully']);
     }
 
@@ -132,7 +133,7 @@ class UserController extends Controller
         $user = User::findOrFail($request->user_id);
         // dd($user);
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
         $user->save();
         $message = $user->is_active ? 'User activated successfully' : 'User deactivated successfully';
 
